@@ -107,11 +107,13 @@ class AddressBar(ttk.Frame):
         results.nouns_count.set(len(nouns))
         results.verbs_count.set(len(verbs))
         results.output.set('\n'.join(entities))
+        log.debug('populated gui fields')
 
     def save_results(self, entities:list, nouns:list, verbs:list):
         file = open_new_file(os.getcwd() + '/output')
         file.write('\n'.join(entities))
         file.close()
+        log.debug('saved results to output file')
 
 class ResultsFrame(ttk.Frame):
     """Tkinter frame that ouputs results from spacy"""
