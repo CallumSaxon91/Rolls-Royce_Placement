@@ -1,8 +1,6 @@
 import logging
 from appdirs import AppDirs
-from itertools import count
 from pathlib import Path
-from typing import TextIO
 from datetime import datetime, timedelta
 
 from utils import open_new_file
