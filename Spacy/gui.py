@@ -13,11 +13,21 @@ from process import (
     get_nouns_from_str,
     get_verbs_from_str
 )
-from exceptions import NotWikiPage
+from exceptions import NotWikiPage, NoImageFound
 from utils import open_new_file
 
 
 log = logging.getLogger(__name__)
+    
+def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
+    """returns PhotoImage object obtained from file path"""
+    fp = 'assets/' + filename
+    if not os.path.exists(fp):
+        log.error(f'could not find image at fp: {fp}')
+        raise NoImageFound
+    im = Image.open(fp)
+    im.resize(size, Image.ANTIALIAS)
+    return ImageTk.PhotoImage(im)
     
 
 class AppRoot(tk.Tk):
