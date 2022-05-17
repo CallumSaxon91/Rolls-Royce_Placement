@@ -23,6 +23,6 @@ def open_new_file(dir:str) -> TextIO:
     filenames = (f'{timestamp}.txt' if i == 0 else f'{timestamp}_{i}.txt' for i in count())
     for filename in filenames:
         try:
-            return (Path(f'{dir}/{filename}').open('x', encoding='utf-8'))
+            return (Path(f'"{dir}/{filename}"').open('x', encoding='utf-8'))
         except FileExistsError:
             continue
