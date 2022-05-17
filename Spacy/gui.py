@@ -52,20 +52,24 @@ class AddressBar(ttk.Frame):
         self.search_term = tk.StringVar(
             value='https://en.wikipedia.org/wiki/'
         )
-        search_btn = ttk.Button(
+        self.search_btn = ttk.Button(
             self, text='Search', style='AddressBar.TButton',
             command=self.on_search
         )
-        search_btn.pack(side='left', fill='y', padx=5, pady=5)
-        search_bar = ttk.Entry(
+        self.search_btn.pack(side='left', fill='y', padx=5, pady=5)
+        self.search_bar = ttk.Entry(
             self, style='AddressBar.TEntry',
             textvariable=self.search_term
         )
-        search_bar.pack(
+        self.search_bar.pack(
             side='left', fill='both',
             expand=True, padx=(0, 5), pady=5
         )
-        search_bar.bind('<Return>', self.on_search)
+        self.search_bar.bind('<Return>', self.on_search)
+        self.progress_bar = ttk.Progressbar(
+            orient='horizontal',
+            mode='indeterminate',
+        )
 
     def on_search(self, event:tk.Event=None):
         search_thread = Thread(target=self.search)
@@ -74,7 +78,12 @@ class AddressBar(ttk.Frame):
 
     def search(self):
         """Search the web to find """
-        
+        # update gui to reflect searching in progress
+        self.progress_bar.pack(self.search_bar.pack_info())
+        self.progress_bar.start(20)
+        self.search_bar.pack_forget()
+        self.search_btn.config(state='disabled')
+
         try:
             data = get_data_from_url(self.search_term.get())
         except NotWikiPage:
@@ -99,6 +108,11 @@ class AddressBar(ttk.Frame):
         self.populate_fields(ents, nouns, verbs)
         # write results to output file
         self.save_results(ents, nouns, verbs)
+        # update gui to show searching has finished
+        self.search_bar.pack(self.progress_bar.pack_info())
+        self.progress_bar.pack_forget()
+        self.progress_bar.stop()
+        self.search_btn.config(state='normal')
         
     def populate_fields(self, entities:list, nouns:list, verbs:list):
         """output results to gui"""
