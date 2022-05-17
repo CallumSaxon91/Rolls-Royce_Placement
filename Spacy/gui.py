@@ -5,7 +5,7 @@ from appdirs import AppDirs
 
 from style import Style
 from process import (
-    get_data_from_url, 
+    get_data_from_url,
     get_ents_from_str,
     get_nouns_from_str,
     get_verbs_from_str
@@ -43,6 +43,7 @@ class AppRoot(tk.Tk):
 
 
 class AddressBar(ttk.Frame):
+    """Tkinter frame that contains controls used to lookup web url"""
     def __init__(self, master):
         super().__init__(master, style='AddressBar.TFrame')
         self.search_term = tk.StringVar(
@@ -58,7 +59,7 @@ class AddressBar(ttk.Frame):
             textvariable=self.search_term
         )
         search_bar.pack(
-            side='left', fill='both', 
+            side='left', fill='both',
             expand=True, padx=(0, 5), pady=5
         )
         search_bar.bind('<Return>', self.on_search)
@@ -74,21 +75,18 @@ class AddressBar(ttk.Frame):
                         'to a wikipedia article. Try Again.'
             )
             return
-        ents_as_list = [get_ents_from_str(s) for s in data['para']]
-        ents = []
-        for e in ents_as_list:
-            ents.extend(e)
-        
-        nouns_as_list = [get_nouns_from_str(s) for s in data['para']]
-        nouns = []
-        for n in nouns_as_list:
-            nouns.extend(n)
-            
-        verbs_as_list = [get_verbs_from_str(s) for s in data['para']]
-        verbs = []
-        for n in verbs_as_list:
-            verbs.extend(n)
-        
+        def get_data_from_para(func) -> list:
+            """use to get data from entities"""
+            entities = [func(s) for s in data['para']]
+            result = []
+            for entity in entities:
+                result.extend(entity)
+            return result
+        # get lists of various data from collected paragraphs
+        ents = get_data_from_para(get_ents_from_str)
+        nouns = get_data_from_para(get_nouns_from_str)
+        verbs = get_data_from_para(get_verbs_from_str)
+        # ouput results
         results_widget.entities_count.set(len(ents))
         results_widget.nouns_count.set(len(nouns))
         results_widget.verbs_count.set(len(verbs))
@@ -96,6 +94,7 @@ class AddressBar(ttk.Frame):
 
 
 class ResultsFrame(ttk.Frame):
+    """Tkinter frame that ouputs results from spacy"""
     def __init__(self, master:tk.Tk):
         super().__init__(master)
         self.entities_count = tk.IntVar()
@@ -106,7 +105,6 @@ class ResultsFrame(ttk.Frame):
 
         counts_frame = ttk.Frame(self)
         counts_frame.pack(side='top', pady=5)
-        
         # entities counter
         ttk.Label(
             counts_frame, text='Entities:',
@@ -116,7 +114,6 @@ class ResultsFrame(ttk.Frame):
             counts_frame, style='Results.TLabel',
             textvariable=self.entities_count
         ).grid(column=0, row=1)
-        
         # nouns counter
         ttk.Label(
             counts_frame, text='Nouns:',
@@ -126,7 +123,6 @@ class ResultsFrame(ttk.Frame):
             counts_frame, style='Results.TLabel',
             textvariable=self.nouns_count
         ).grid(column=1, row=1, padx=10)
-        
         # verbs counter
         ttk.Label(
             counts_frame, text='Verbs:',
@@ -136,18 +132,17 @@ class ResultsFrame(ttk.Frame):
             counts_frame, style='Results.TLabel',
             textvariable=self.verbs_count
         ).grid(column=2, row=1)
-        
+        # text box for output
         self.output_widget = tk.Text(self)
         self.output_widget.pack(side='top', padx=10, pady=(0, 10))
-        
+        # scrollbar for output widget
         scroller = ttk.Scrollbar(
-            master, orient='vertical', 
+            master, orient='vertical',
             command=self.output_widget.yview
         )
         scroller.pack(side='right', fill='y')
         self.output_widget.config(yscrollcommand=scroller.set)
-        
+
     def insert_text(self):
         self.output_widget.delete(1.0, 'end')
         self.output_widget.insert('insert', self.output.get())
-        
