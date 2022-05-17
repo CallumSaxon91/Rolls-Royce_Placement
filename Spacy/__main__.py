@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from appdirs import AppDirs
 
 from gui import AppRoot
