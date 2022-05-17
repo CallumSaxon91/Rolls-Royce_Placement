@@ -1,3 +1,4 @@
+import os
 import logging
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -12,6 +13,7 @@ from process import (
     get_verbs_from_str
 )
 from exceptions import NotWikiPage
+from utils import open_new_file
 
 
 log = logging.getLogger(__name__)
@@ -71,7 +73,8 @@ class AddressBar(ttk.Frame):
         search_thread.start()
 
     def search(self):
-        results_widget = self.master.results
+        """Search the web to find """
+        
         try:
             data = get_data_from_url(self.search_term.get())
         except NotWikiPage:
@@ -92,12 +95,23 @@ class AddressBar(ttk.Frame):
         ents = get_data_from_para(get_ents_from_str)
         nouns = get_data_from_para(get_nouns_from_str)
         verbs = get_data_from_para(get_verbs_from_str)
-        # ouput results
-        results_widget.entities_count.set(len(ents))
-        results_widget.nouns_count.set(len(nouns))
-        results_widget.verbs_count.set(len(verbs))
-        results_widget.output.set('\n'.join(ents))
+        # output results to gui
+        self.populate_fields(ents, nouns, verbs)
+        # write results to output file
+        self.save_results(ents, nouns, verbs)
+        
+    def populate_fields(self, entities:list, nouns:list, verbs:list):
+        """output results to gui"""
+        results = self.master.results
+        results.entities_count.set(len(entities))
+        results.nouns_count.set(len(nouns))
+        results.verbs_count.set(len(verbs))
+        results.output.set('\n'.join(entities))
 
+    def save_results(self, entities:list, nouns:list, verbs:list):
+        file = open_new_file(os.getcwd() + '/output')
+        file.write('\n'.join(entities))
+        file.close()
 
 class ResultsFrame(ttk.Frame):
     """Tkinter frame that ouputs results from spacy"""
