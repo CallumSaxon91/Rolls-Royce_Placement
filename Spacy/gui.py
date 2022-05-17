@@ -4,6 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 from appdirs import AppDirs
 from threading import Thread
+from PIL import Image, ImageTk
 
 from style import Style
 from process import (
@@ -17,7 +18,7 @@ from utils import open_new_file
 
 
 log = logging.getLogger(__name__)
-
+    
 
 class AppRoot(tk.Tk):
     def __init__(self, app_name:str, dirs:AppDirs):
@@ -33,7 +34,6 @@ class AppRoot(tk.Tk):
         # create and show controls
         self.addbar = AddressBar(self)
         self.addbar.pack(fill='x')
-        ttk.Separator(self).pack(side='top', fill='x')
         self.results = ResultsFrame(self)
         self.results.pack(fill='both', expand=True)
 
@@ -78,19 +78,24 @@ class AddressBar(ttk.Frame):
 
     def search(self):
         """Search the web to find """
+        url = self.search_term.get()
+        log.debug(f'starting search for: {url}')
         # update gui to reflect searching in progress
         self.progress_bar.pack(self.search_bar.pack_info())
         self.progress_bar.start(20)
         self.search_bar.pack_forget()
         self.search_btn.config(state='disabled')
-
+        # attempt to get the data
         try:
-            data = get_data_from_url(self.search_term.get())
+            data = get_data_from_url(url)
         except NotWikiPage:
             messagebox.showerror(
-                title='Error',
+                title='Search Cancelled',
                 message='The URL entered does not lead ' \
                         'to a wikipedia article. Try Again.'
+            )
+            log.debug(
+                'cancelled search because entered url is invalid'
             )
             return
         def get_data_from_para(func) -> list:
@@ -129,7 +134,7 @@ class AddressBar(ttk.Frame):
         file.close()
         log.debug('saved results to output file')
 
-class ResultsFrame(ttk.Frame):
+class ResultsFrame(ttk.Notebook):
     """Tkinter frame that ouputs results from spacy"""
     def __init__(self, master:tk.Tk):
         super().__init__(master)
@@ -138,47 +143,21 @@ class ResultsFrame(ttk.Frame):
         self.verbs_count = tk.IntVar()
         self.output = tk.StringVar()
         self.output.trace_add('write', lambda *_: self.insert_text())
-
-        counts_frame = ttk.Frame(self)
-        counts_frame.pack(side='top', pady=5)
-        # entities counter
-        ttk.Label(
-            counts_frame, text='Entities:',
-            style='Results.TLabel'
-        ).grid(column=0, row=0)
-        ttk.Label(
-            counts_frame, style='Results.TLabel',
-            textvariable=self.entities_count
-        ).grid(column=0, row=1)
-        # nouns counter
-        ttk.Label(
-            counts_frame, text='Nouns:',
-            style='Results.TLabel'
-        ).grid(column=1, row=0, padx=10)
-        ttk.Label(
-            counts_frame, style='Results.TLabel',
-            textvariable=self.nouns_count
-        ).grid(column=1, row=1, padx=10)
-        # verbs counter
-        ttk.Label(
-            counts_frame, text='Verbs:',
-            style='Results.TLabel'
-        ).grid(column=2, row=0)
-        ttk.Label(
-            counts_frame, style='Results.TLabel',
-            textvariable=self.verbs_count
-        ).grid(column=2, row=1)
-        # text box for output
-        self.output_widget = tk.Text(self)
-        self.output_widget.pack(side='top', padx=10, pady=(0, 10))
-        # scrollbar for output widget
-        scroller = ttk.Scrollbar(
-            master, orient='vertical',
-            command=self.output_widget.yview
-        )
-        scroller.pack(side='right', fill='y')
-        self.output_widget.config(yscrollcommand=scroller.set)
+        
+        self.entities_frame = EntitiesFrame(self)
+        self.entities_tree_frame = TreeFrame(self)
 
     def insert_text(self):
         self.output_widget.delete(1.0, 'end')
         self.output_widget.insert('insert', self.output.get())
+        
+        
+class EntitiesFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        master.add(self, text='Entities')
+        
+class TreeFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        master.add(self, text='Entities Tree')
