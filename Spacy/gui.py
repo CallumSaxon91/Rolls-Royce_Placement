@@ -2,6 +2,7 @@ import logging
 import tkinter as tk
 from tkinter import ttk, messagebox
 from appdirs import AppDirs
+from threading import Thread
 
 from style import Style
 from process import (
@@ -65,6 +66,11 @@ class AddressBar(ttk.Frame):
         search_bar.bind('<Return>', self.on_search)
 
     def on_search(self, event:tk.Event=None):
+        search_thread = Thread(target=self.search)
+        search_thread.daemon = True
+        search_thread.start()
+
+    def search(self):
         results_widget = self.master.results
         try:
             data = get_data_from_url(self.search_term.get())
