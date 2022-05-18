@@ -160,14 +160,16 @@ class ResultsFrame(ttk.Notebook):
     def insert_text(self):
         self.output_widget.delete(1.0, 'end')
         self.output_widget.insert('insert', self.output.get())
-        
-        
+
+
 class EntitiesFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
         master.add(self, text='Entities')
-        
-class TreeFrame(ttk.Frame):
-    def __init__(self, master):
-        super().__init__(master)
-        master.add(self, text='Entities Tree')
+        headings = ('entities', 'duplicates')
+        self.tree = ttk.Treeview(
+            self, show='headings', columns=headings
+        )
+        self.tree.pack(fill='both', expand=True)
+        for heading in headings:
+            self.tree.heading(heading, text=heading.capitalize())
