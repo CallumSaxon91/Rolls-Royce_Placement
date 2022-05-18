@@ -175,8 +175,8 @@ class ResultsFrame(ttk.Frame):
         scroller = ttk.Scrollbar(self, command=self.tree.yview)
         scroller.pack(side='right', fill='y')
         self.tree.config(yscrollcommand=scroller.set)
-        self.tree.tag_configure('even', background='gray80')
-        self.tree.tag_configure('odd', background='gray75')
+        self.tree.tag_configure('even', background='gray85')
+        self.tree.tag_configure('odd', background='gray80')
 
     def populate_tree(self, content:list[list]):
         """populates tree from 2d array"""

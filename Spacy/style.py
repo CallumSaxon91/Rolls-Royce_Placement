@@ -1,6 +1,6 @@
 from tkinter import ttk
 
-
+# this should really be cleaned up soon
 theme_settings = {
     "tk": {
         "Text": {
@@ -62,11 +62,17 @@ theme_settings = {
             "configure": {
                 "fieldbackground": "gray85",
                 "highlightthickness": 0,
-            }
+            },
+            "layout": [
+                [
+                    "treeview.treearea", 
+                    {"sticky": "nsew"}
+                ]
+            ]
         },
         "Treeview.Heading": {
             "configure": {
-                "background": "gray70"
+                "background": "gray75"
             }
         }
     }
