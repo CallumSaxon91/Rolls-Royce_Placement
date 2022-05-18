@@ -39,6 +39,11 @@ theme_settings = {
                 ]
             }
         },
+        "AddressBarImg.TButton": {
+            "configure": {
+                "focuscolor": "gray85"
+            }
+        },
         "AddressBar.TEntry": {
             "configure": {
                 "padding": [3, 0, 3, 0],

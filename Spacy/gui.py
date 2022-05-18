@@ -1,14 +1,14 @@
 import os
 import logging
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from appdirs import AppDirs
 from threading import Thread
 from PIL import Image, ImageTk
 from requests import ConnectionError
 
 from style import Style
-from process import get_data_from_url, parse_string
+from process import get_data_from_url, parse_string, parse_from_file
 from exceptions import NotWikiPage, NoImageFound
 from utils import open_new_file
 
@@ -22,7 +22,7 @@ def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
         log.error(f'could not find image at fp: {fp}')
         raise NoImageFound
     im = Image.open(fp)
-    im.resize(size, Image.ANTIALIAS)
+    im = im.resize(size, Image.ANTIALIAS)
     return ImageTk.PhotoImage(im)
     
 
@@ -51,6 +51,17 @@ class AppRoot(tk.Tk):
         log.debug('app root initialized')
 
 
+class ImageButton(ttk.Button):
+    def __init__(
+            self, master, img_fn:str, img_size:tuple[int, int], **kw
+        ):
+        self.img = image(img_fn, img_size)
+        super().__init__(
+            master, image=self.img, cursor='hand2', 
+            style='AddressBarImg.TButton', **kw
+        )
+
+
 class AddressBar(ttk.Frame):
     """Tkinter frame that contains controls used to lookup web url"""
     def __init__(self, master):
@@ -60,7 +71,7 @@ class AddressBar(ttk.Frame):
         )
         self.search_btn = ttk.Button(
             self, text='Search', style='AddressBar.TButton',
-            command=self.on_search
+            command=self.on_search_btn
         )
         self.search_btn.pack(side='left', fill='y', padx=5, pady=5)
         self.search_bar = ttk.Entry(
@@ -69,34 +80,54 @@ class AddressBar(ttk.Frame):
         )
         self.search_bar.pack(
             side='left', fill='both',
-            expand=True, padx=(0, 5), pady=5
+            expand=True, pady=5
         )
-        self.search_bar.bind('<Return>', self.on_search)
+        self.search_bar.bind('<Return>', self.on_search_btn)
         self.progress_bar = ttk.Progressbar(
             orient='horizontal',
             mode='indeterminate',
         )
+        self.file_btn = ImageButton(
+            self, img_fn='file.png', img_size=(20, 18), 
+            command=self.on_file_btn
+        )
+        self.file_btn.pack(side='right', padx=5)
+        sep = ttk.Separator(self, orient='vertical')
+        sep.pack(side='right', before=self.file_btn, fill='y', pady=5)
+        self.save_btn = ImageButton(
+            self, img_fn='save.png', img_size=(20, 20), 
+            command=self.on_save_btn
+        )
+        self.save_btn.pack(side='right', padx=5, before=sep)
 
-    def on_search(self, event:tk.Event=None):
+    def on_file_btn(self):
+        m = messagebox.askokcancel(
+            title='Open File',
+            message = 'You can use a text file as input data to ' \
+                    'parse. The file can contain urls separated by ' \
+                    ' a line break or a string of characters to be ' \
+                    'parsed.'
+        )
+        if not m: return
+        fp = filedialog.askopenfilename(
+            filetypes=(('Text File', '*.txt'),)
+        )
+        self.search_term.set(fp)
+
+    
+    def on_save_btn(self):
+        messagebox.showinfo(
+            title='feature not added', 
+            message='feature not added'
+        )
+        raise NotImplementedError
+
+    def on_search_btn(self, event:tk.Event=None):
         search_thread = Thread(target=self.search)
         search_thread.daemon = True
         search_thread.start()
-        
-    def update_gui_state(self, searching:bool):
-        """Enables or disables addressbar widgets"""
-        if searching:
-            self.progress_bar.pack(self.search_bar.pack_info())
-            self.progress_bar.start(20)
-            self.search_bar.pack_forget()
-            self.search_btn.config(state='disabled')
-            return
-        self.search_bar.pack(self.progress_bar.pack_info())
-        self.progress_bar.pack_forget()
-        self.progress_bar.stop()
-        self.search_btn.config(state='normal')
 
     def search(self):
-        """Search the web to find """
         url = self.search_term.get()
         log.debug(f'starting search for: {url}')
         # update gui to reflect searching in progress
@@ -129,6 +160,19 @@ class AddressBar(ttk.Frame):
         self.save_results(data)
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
+        
+    def update_gui_state(self, searching:bool):
+        """Enables or disables addressbar widgets"""
+        if searching:
+            self.progress_bar.pack(self.search_bar.pack_info())
+            self.progress_bar.start(20)
+            self.search_bar.pack_forget()
+            self.search_btn.config(state='disabled')
+            return
+        self.search_bar.pack(self.progress_bar.pack_info())
+        self.progress_bar.pack_forget()
+        self.progress_bar.stop()
+        self.search_btn.config(state='normal')
         
     def populate_fields(self, data:list[tuple]):
         """output results to gui"""

@@ -3,6 +3,7 @@ import requests
 import logging
 import numpy as np
 from bs4 import BeautifulSoup
+from io import TextIOWrapper
 
 from exceptions import NotWikiPage
 
@@ -48,3 +49,10 @@ def parse_string(string:str):
     result = np.array([[t.text, t.ent_type_, t.pos_] for t in doc])
     result[np.where(result=='')] = 'No Category'
     return result.tolist()
+
+def parse_from_file(file:TextIOWrapper):
+    content = file.readlines()
+    if any((line.startswith('https://') for line in content)):
+        print('web page')
+    else:
+        print('other')
