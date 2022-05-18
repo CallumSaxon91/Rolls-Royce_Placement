@@ -12,14 +12,11 @@ log = logging.getLogger(__name__)
 def validate_dirs(dirs) -> None:
     """Creates app directories if they don't already exist."""
     log.info('validating app dirs')
-    # directories in the appdata dir
     Path(dirs.user_config_dir).mkdir(parents=True, exist_ok=True)
     Path(dirs.user_log_dir).mkdir(parents=True, exist_ok=True)
-    # directories with the project files
-    for folder_name in ('output', 'assets'):
-        Path(
-            __file__.removesuffix(f'{__name__}.py') + folder_name
-        ).mkdir(parents=True, exist_ok=True)
+    Path(
+        __file__.removesuffix(f'{__name__}.py') + 'output'
+    ).mkdir(parents=True, exist_ok=True)
 
 def open_new_file(dir:str) -> TextIO:
     timestamp = datetime.now().strftime(FILENAME_FORMAT_PREFIX)
