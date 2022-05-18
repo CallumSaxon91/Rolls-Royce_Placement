@@ -21,6 +21,7 @@ theme_settings = {
         },
         "AddressBar.TButton": {
             "configure": {
+                "background": "gray85",
                 "focuscolor": "gray85",
                 "borderwidth": 2,
                 "relief": "groove",
@@ -29,12 +30,43 @@ theme_settings = {
             "map": {
                 "relief": [
                     ["pressed", "sunken"],
+                ],
+                "background": [
+                    ["pressed", "gray80"]
+                ],
+                "focuscolor": [
+                    ["pressed", "gray80"]
                 ]
             }
         },
         "AddressBar.TEntry": {
             "configure": {
-                "padding": [3, 0, 3, 0]
+                "padding": [3, 0, 3, 0],
+                "selectforeground": "white",
+                "selectbackground": "DodgerBlue"
+            }
+        },
+        "TNotebook.Tab": {
+            "configure": {
+                "background": "gray75",
+                "focuscolor": "gray85",
+                "padding": [7, 0, 7, 0]
+            },
+            "map": {
+                "background": [
+                    ["selected", "gray85"]
+                ]
+            }
+        },
+        "Treeview": {
+            "configure": {
+                "fieldbackground": "gray85",
+                "highlightthickness": 0,
+            }
+        },
+        "Treeview.Heading": {
+            "configure": {
+                "background": "gray70"
             }
         }
     }
