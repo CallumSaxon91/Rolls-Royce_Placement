@@ -1,3 +1,4 @@
+import os
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -23,6 +24,10 @@ def open_new_file(dir:str) -> TextIO:
     filenames = (f'{timestamp}.txt' if i == 0 else f'{timestamp}_{i}.txt' for i in count())
     for filename in filenames:
         try:
+            fp = f'{dir}/{filename}'
+            if not os.path.exists(fp):
+                break
             return (Path(f'{dir}/{filename}').open('x', encoding='utf-8'))
         except FileExistsError:
             continue
+
