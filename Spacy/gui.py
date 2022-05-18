@@ -109,7 +109,7 @@ class AddressBar(ttk.Frame):
             self.update_gui_state(searching=False)
             messagebox.showerror(
                 title='Search Cancelled',
-                message='The URL entered does not lead to a ' \ 
+                message='The URL entered does not lead to a ' \
                         'wikipedia article. Try Again.'
             )
             return
