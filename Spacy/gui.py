@@ -4,27 +4,16 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from appdirs import AppDirs
 from threading import Thread
-from PIL import Image, ImageTk
 from requests import ConnectionError
 
 from style import Style
 from process import get_data_from_url, parse_string, parse_from_file
-from exceptions import NotWikiPage, NoImageFound
-from utils import open_new_file
+from exceptions import NotWikiPage
+from utils import open_new_file, image
 
 
 log = logging.getLogger(__name__)
-    
-def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
-    """returns PhotoImage object obtained from file path"""
-    fp = 'assets/' + filename
-    if not os.path.exists(fp):
-        log.error(f'could not find image at fp: {fp}')
-        raise NoImageFound
-    im = Image.open(fp)
-    im = im.resize(size, Image.ANTIALIAS)
-    return ImageTk.PhotoImage(im)
-    
+
 
 class AppRoot(tk.Tk):
     def __init__(self, app_name:str, dirs:AppDirs):
@@ -132,7 +121,6 @@ class AddressBar(ttk.Frame):
         log.debug(f'starting search for: {url}')
         # update gui to reflect searching in progress
         self.update_gui_state(searching=True)
-        # attempt to get the data
         try:
             data = get_data_from_url(url)
         except NotWikiPage:

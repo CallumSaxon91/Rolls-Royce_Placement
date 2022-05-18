@@ -1,8 +1,12 @@
+import os
 import logging
 from pathlib import Path
 from datetime import datetime
 from typing import TextIO
 from itertools import count
+from PIL import Image, ImageTk
+
+from exceptions import NoImageFound
 
 
 FILENAME_FORMAT_PREFIX = '%Y-%m-%d %H-%M-%S'
@@ -29,3 +33,13 @@ def open_new_file(dir:str) -> TextIO:
             return (Path(f'{dir}/{filename}').open('x', encoding='utf-8'))
         except FileExistsError:
             continue
+        
+def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
+    """returns PhotoImage object obtained from file path"""
+    fp = 'assets/' + filename
+    if not os.path.exists(fp):
+        log.error(f'could not find image at fp: {fp}')
+        raise NoImageFound
+    im = Image.open(fp)
+    im = im.resize(size, Image.ANTIALIAS)
+    return ImageTk.PhotoImage(im)
