@@ -8,6 +8,7 @@ from logs import setup_logs
 
 log = logging.getLogger(__name__)
 
+# validates the app directories
 def validate_dirs(dirs) -> None:
     """Creates app directories if they don't already exist."""
     log.info('validating app dirs')
@@ -17,7 +18,7 @@ def validate_dirs(dirs) -> None:
 if __name__ == '__main__':
     app_name = 'SpacyResearch'
 
-    # validate directories before starting
+    # runs validate_dirs functoin to validate directories before starting
     dirs = AppDirs(app_name)
     validate_dirs(dirs)
 

@@ -1,6 +1,6 @@
 from tkinter import ttk
 
-
+# adds design rules through themes
 theme_settings = {
     "tk": {
         "Text": {
