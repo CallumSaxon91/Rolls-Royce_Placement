@@ -1,6 +1,7 @@
 import spacy
 import requests
 from bs4 import BeautifulSoup
+import numpy as np
 
 from exceptions import NotWikiPage
 
@@ -48,10 +49,6 @@ def get_verbs_from_str(string:str) -> list[str]:
 
 def parse_string(string:str):
     doc = npl(string)
-    result = [[t.text, t.ent_type_, t.pos_] for t in doc]
-    # TODO: clean this code. it was rushed
-    for i, r in enumerate(result):
-        if r[1] == '':
-            r[1] = 'Unrecognized Category'
-        result[i] = r
-    return result
+    result = np.array([[t.text, t.ent_type_, t.pos_] for t in doc])
+    result[np.where(result=='')] = 'No Category'
+    return result.tolist()

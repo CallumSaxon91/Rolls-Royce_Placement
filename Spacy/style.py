@@ -50,7 +50,7 @@ theme_settings = {
             "configure": {
                 "background": "gray75",
                 "focuscolor": "gray85",
-                "padding": [5, 0, 5, 0]
+                "padding": [7, 0, 7, 0]
             },
             "map": {
                 "background": [
@@ -62,12 +62,11 @@ theme_settings = {
             "configure": {
                 "fieldbackground": "gray85",
                 "highlightthickness": 0,
-                "anchor": "center"
             }
         },
         "Treeview.Heading": {
             "configure": {
-                "background": "gray75"
+                "background": "gray70"
             }
         }
     }

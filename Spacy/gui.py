@@ -45,8 +45,8 @@ class AppRoot(tk.Tk):
         # create and show controls
         self.addbar = AddressBar(self)
         self.addbar.pack(fill='x')
-        self.results = ResultsFrame(self)
-        self.results.pack(fill='both', expand=True)
+        self.notebook = Notebook(self)
+        self.notebook.pack(fill='both', expand=True)
 
         # setup style
         # style must be setup after creating the controls because some
@@ -127,7 +127,7 @@ class AddressBar(ttk.Frame):
         # results.nouns_count.set(len(nouns))
         # results.verbs_count.set(len(verbs))
         # results.output.set('\n'.join(entities))
-        self.master.results.entities_frame.populate_tree(data)
+        self.master.notebook.entities_frame.populate_tree(data)
         log.debug('populated gui fields')
 
     def save_results(self, content:list[tuple]):
@@ -137,7 +137,7 @@ class AddressBar(ttk.Frame):
         file.close()
         log.debug('saved results to output file')
 
-class ResultsFrame(ttk.Notebook):
+class Notebook(ttk.Notebook):
     """Tkinter frame that ouputs results from spacy"""
     def __init__(self, master:tk.Tk):
         super().__init__(master)
@@ -146,27 +146,38 @@ class ResultsFrame(ttk.Notebook):
         self.verbs_count = tk.IntVar()
         self.output = tk.StringVar()
         self.output.trace_add('write', lambda *_: self.insert_text())
-
-        self.entities_frame = EntitiesFrame(self)
-
-    def insert_text(self):
-        self.output_widget.delete(1.0, 'end')
-        self.output_widget.insert('insert', self.output.get())
+        self.entities_frame = ResultsFrame(self)
+        self.legend_frame = LegendFrame(self)
 
 
-class EntitiesFrame(ttk.Frame):
+class ResultsFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
-        master.add(self, text='Entities')
+        master.add(self, text='Results')
         headings = ('words', 'category', 'type')
         self.tree = ttk.Treeview(
             self, show='headings', columns=headings
         )
-        self.tree.pack(fill='both', expand=True)
+        self.tree.pack(side='left', fill='both', expand=True)
         for heading in headings:
-            self.tree.column(heading, anchor='center')
+            self.tree.column(heading, anchor='w')
             self.tree.heading(heading, text=heading.capitalize())
+        scroller = ttk.Scrollbar(self, command=self.tree.yview)
+        scroller.pack(side='right', fill='y')
+        self.tree.config(yscrollcommand=scroller.set)
+        self.tree.tag_configure('even', background='gray80')
+        self.tree.tag_configure('odd', background='gray75')
 
-    def populate_tree(self, content:tuple[tuple]):
-        for item in content:
-            self.tree.insert('', 'end', values=item)
+    def populate_tree(self, content:list[list]):
+        """populates tree from 2d array"""
+        # self.tree.delete(*self.tree.winfo_children())
+        self.tree.delete(*self.tree.get_children())
+        for i, item in enumerate(content):
+            tag = 'even' if i % 2 == 0 else 'odd'
+            self.tree.insert('', 'end', values=item, tags=(tag,))
+            
+
+class LegendFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.master.add(self, text='Legend')
