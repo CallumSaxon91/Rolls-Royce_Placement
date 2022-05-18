@@ -86,20 +86,31 @@ class AddressBar(ttk.Frame):
         search_thread = Thread(target=self.search)
         search_thread.daemon = True
         search_thread.start()
+        
+    def update_gui_state(self, searching:bool):
+        """Enables or disables addressbar widgets"""
+        if searching:
+            self.progress_bar.pack(self.search_bar.pack_info())
+            self.progress_bar.start(20)
+            self.search_bar.pack_forget()
+            self.search_btn.config(state='disabled')
+            return
+        self.search_bar.pack(self.progress_bar.pack_info())
+        self.progress_bar.pack_forget()
+        self.progress_bar.stop()
+        self.search_btn.config(state='normal')
 
     def search(self):
         """Search the web to find """
         url = self.search_term.get()
         log.debug(f'starting search for: {url}')
         # update gui to reflect searching in progress
-        self.progress_bar.pack(self.search_bar.pack_info())
-        self.progress_bar.start(20)
-        self.search_bar.pack_forget()
-        self.search_btn.config(state='disabled')
+        self.update_gui_state(searching=True)
         # attempt to get the data
         try:
             data = get_data_from_url(url)
         except NotWikiPage:
+            self.update_gui_state(searching=False)
             messagebox.showerror(
                 title='Search Cancelled',
                 message='The URL entered does not lead ' \
@@ -115,10 +126,7 @@ class AddressBar(ttk.Frame):
         self.populate_fields(data)
         self.save_results(data)
         # update gui to show searching has finished
-        self.search_bar.pack(self.progress_bar.pack_info())
-        self.progress_bar.pack_forget()
-        self.progress_bar.stop()
-        self.search_btn.config(state='normal')
+        self.update_gui_state(searching=False)
         
     def populate_fields(self, data:list[tuple]):
         """output results to gui"""
