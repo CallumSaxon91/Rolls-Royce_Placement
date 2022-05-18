@@ -155,7 +155,7 @@ class ResultsFrame(ttk.Notebook):
         self.output.trace_add('write', lambda *_: self.insert_text())
         
         self.entities_frame = EntitiesFrame(self)
-        self.entities_tree_frame = TreeFrame(self)
+        
 
     def insert_text(self):
         self.output_widget.delete(1.0, 'end')
