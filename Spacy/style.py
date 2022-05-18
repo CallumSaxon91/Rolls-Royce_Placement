@@ -1,27 +1,35 @@
 from tkinter import ttk
-
+bcolor = "azure"
 
 theme_settings = {
     "tk": {
         "Text": {
             "configure": {
                 "borderwidth": 1,
-                "relief": "groove"
+                "relief": "groove",
             }
         }
     },
     "ttk": {
         "TFrame": {
             "configure": {
+                "background": "lavender"
+            }
+        },
+        "TLabel": {
+            "configure": {
+                "background": "lavender"
             }
         },
         "AddressBar.TFrame": {
             "configure": {
+                "background": bcolor,
             }
         },
         "AddressBar.TButton": {
             "configure": {
                 "focuscolor": "gray85",
+                "background": bcolor,
                 "borderwidth": 2,
                 "relief": "groove",
                 "padding": [10, 0, 10, 0]
@@ -29,11 +37,13 @@ theme_settings = {
             "map": {
                 "relief": [
                     ["pressed", "sunken"],
+                    
                 ]
             }
         },
         "AddressBar.TEntry": {
             "configure": {
+                "background": bcolor,
                 "padding": [3, 0, 3, 0]
             }
         }
