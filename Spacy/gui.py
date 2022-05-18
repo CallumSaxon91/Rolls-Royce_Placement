@@ -11,7 +11,8 @@ from process import (
     get_data_from_url,
     get_ents_from_str,
     get_nouns_from_str,
-    get_verbs_from_str
+    get_verbs_from_str,
+    parse_string
 )
 from exceptions import NotWikiPage, NoImageFound
 from utils import open_new_file
@@ -108,37 +109,29 @@ class AddressBar(ttk.Frame):
                 'cancelled search because entered url is invalid'
             )
             return
-        def get_data_from_para(func) -> list:
-            """use to get data from entities"""
-            entities = [func(s) for s in data['para']]
-            result = []
-            for entity in entities:
-                result.extend(entity)
-            return result
-        # get lists of various data from collected paragraphs
-        ents = get_data_from_para(get_ents_from_str)
-        nouns = get_data_from_para(get_nouns_from_str)
-        verbs = get_data_from_para(get_verbs_from_str)
-        # output results to gui
-        self.populate_fields(ents, nouns, verbs)
-        # write results to output file
-        self.save_results(ents, nouns, verbs)
+
+        data = parse_string("".join(data['para']))
+        # output results to gui and save to file
+        self.populate_fields(data)
+        self.save_results(data)
         # update gui to show searching has finished
         self.search_bar.pack(self.progress_bar.pack_info())
         self.progress_bar.pack_forget()
         self.progress_bar.stop()
         self.search_btn.config(state='normal')
         
-    def populate_fields(self, entities:list, nouns:list, verbs:list):
+    def populate_fields(self, data:list[tuple]):
         """output results to gui"""
-        results = self.master.results
-        results.entities_count.set(len(entities))
-        results.nouns_count.set(len(nouns))
-        results.verbs_count.set(len(verbs))
-        results.output.set('\n'.join(entities))
+        # results = self.master.results
+        # results.entities_count.set(len(entities))
+        # results.nouns_count.set(len(nouns))
+        # results.verbs_count.set(len(verbs))
+        # results.output.set('\n'.join(entities))
+        self.master.results.entities_frame.populate_tree(data)
         log.debug('populated gui fields')
 
-    def save_results(self, entities:list, nouns:list, verbs:list):
+    def save_results(self, content:list[tuple]):
+        return
         file = open_new_file(os.getcwd() + '/output')
         file.write('\n'.join(entities))
         file.close()
@@ -153,9 +146,8 @@ class ResultsFrame(ttk.Notebook):
         self.verbs_count = tk.IntVar()
         self.output = tk.StringVar()
         self.output.trace_add('write', lambda *_: self.insert_text())
-        
+
         self.entities_frame = EntitiesFrame(self)
-        self.entities_tree_frame = TreeFrame(self)
 
     def insert_text(self):
         self.output_widget.delete(1.0, 'end')
@@ -166,10 +158,15 @@ class EntitiesFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
         master.add(self, text='Entities')
-        headings = ('entities', 'duplicates')
+        headings = ('words', 'category', 'type')
         self.tree = ttk.Treeview(
             self, show='headings', columns=headings
         )
         self.tree.pack(fill='both', expand=True)
         for heading in headings:
+            self.tree.column(heading, anchor='center')
             self.tree.heading(heading, text=heading.capitalize())
+
+    def populate_tree(self, content:tuple[tuple]):
+        for item in content:
+            self.tree.insert('', 'end', values=item)

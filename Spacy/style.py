@@ -57,6 +57,18 @@ theme_settings = {
                     ["selected", "gray85"]
                 ]
             }
+        },
+        "Treeview": {
+            "configure": {
+                "fieldbackground": "gray85",
+                "highlightthickness": 0,
+                "anchor": "center"
+            }
+        },
+        "Treeview.Heading": {
+            "configure": {
+                "background": "gray75"
+            }
         }
     }
 }

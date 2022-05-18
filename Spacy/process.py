@@ -45,3 +45,13 @@ def get_verbs_from_str(string:str) -> list[str]:
     """returns list of verbs found in passed string"""
     doc = npl(string)
     return [token.lemma_ for token in doc if token.pos_ == "VERB"]
+
+def parse_string(string:str):
+    doc = npl(string)
+    result = [[t.text, t.ent_type_, t.pos_] for t in doc]
+    # TODO: clean this code. it was rushed
+    for i, r in enumerate(result):
+        if r[1] == '':
+            r[1] = 'Unrecognized Category'
+        result[i] = r
+    return result
