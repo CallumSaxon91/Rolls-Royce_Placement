@@ -24,7 +24,7 @@ class AppRoot(tk.Tk):
         # setup root window
         self.title(app_name)
         self.geometry('700x400')
-        self.resizable(False, False)
+        #self.resizable(False, False)
 
         # create and show controls
         self.addbar = AddressBar(self)
@@ -153,7 +153,7 @@ class AddressBar(ttk.Frame):
         """Enables or disables addressbar widgets"""
         if searching:
             self.progress_bar.pack(self.search_bar.pack_info())
-            self.progress_bar.start(20)
+            self.progress_bar.start(5)
             self.search_bar.pack_forget()
             self.search_btn.config(state='disabled')
             return
@@ -190,6 +190,7 @@ class Notebook(ttk.Notebook):
         self.output.trace_add('write', lambda *_: self.insert_text())
         self.entities_frame = ResultsFrame(self)
         self.legend_frame = LegendFrame(self)
+        self.settings_frame = SettingsFrame(self)
 
 
 class ResultsFrame(ttk.Frame):
@@ -223,3 +224,9 @@ class LegendFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
         self.master.add(self, text='Legend')
+        
+
+class SettingsFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.master.add(self, text='Settings')

@@ -15,6 +15,11 @@ theme_settings = {
             "configure": {
             }
         },
+        "Horizontal.TProgressbar": {
+            "configure": {
+                "background": "forest green"
+            }
+        },
         "AddressBar.TFrame": {
             "configure": {
             }

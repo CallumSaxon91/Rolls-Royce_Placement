@@ -1,4 +1,4 @@
-import spacy
+import spacy  # takes a long time
 import requests
 import logging
 import numpy as np
@@ -9,7 +9,7 @@ from exceptions import NotWikiPage
 
 
 log = logging.getLogger(__name__)
-npl = spacy.load('en_core_web_sm')
+npl = spacy.load('en_core_web_sm')  # also takes a long time
 
 def _get_soup(url:str) -> BeautifulSoup:
     """Get soup object"""
@@ -53,6 +53,7 @@ def parse_string(string:str):
 def parse_from_file(file:TextIOWrapper):
     content = file.readlines()
     if any((line.startswith('https://') for line in content)):
-        print('web page')
+        data = get_data_from_url(content[0])  # only gets first url TODO: complete this
+        return parse_string(data['content'])
     else:
-        print('other')
+        return parse_string(''.join(content))
