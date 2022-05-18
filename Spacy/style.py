@@ -1,4 +1,5 @@
 from tkinter import ttk
+from turtle import bgcolor
 
 
 theme_settings = {
@@ -12,7 +13,7 @@ theme_settings = {
     },
     "ttk": {
         "TFrame": {
-            "configure": {
+            "configure":  {
             }
         },
         "AddressBar.TFrame": {
@@ -36,6 +37,10 @@ theme_settings = {
             "configure": {
                 "padding": [3, 0, 3, 0]
             }
+        },
+        "Results.TLabel":{
+            "configure": {
+            }
         }
     }
 }
@@ -48,7 +53,7 @@ class Style(ttk.Style):
         self.theme_create(
             themename='default_theme',
             parent='clam',
-            settings=theme_settings['ttk']
+            settings=theme_settings['ttk'],
         )
         self.theme_use('default_theme')
 

@@ -40,3 +40,15 @@ def get_nouns_from_str(string:str) -> list:
 def get_verbs_from_str(string:str) -> list:
     doc = npl(string)
     return [token.lemma_ for token in doc if token.pos_ == "VERB"]
+
+def get_person_from_str(string:str) -> list:
+    doc = npl(string)
+    return [e for e in doc.ents if e.label_ == "PERSON"]
+    
+def get_date_from_str(string:str) -> list:
+    doc = npl(string)
+    return [e for e in doc.ents if e.label_ == "DATE"]
+
+def get_organisations_from_str(string:str) -> list:
+    doc = npl(string)
+    return [e for e in doc.ents if e.label_ == "ORG"]

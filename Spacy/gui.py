@@ -8,7 +8,10 @@ from process import (
     get_data_from_url, 
     get_ents_from_str,
     get_nouns_from_str,
-    get_verbs_from_str
+    get_verbs_from_str,
+    get_person_from_str,
+    get_date_from_str,
+    get_organisations_from_str,
 )
 from exceptions import NotWikiPage
 
@@ -88,10 +91,28 @@ class AddressBar(ttk.Frame):
         verbs = []
         for n in verbs_as_list:
             verbs.extend(n)
+
+        persons_as_list = [get_person_from_str(s) for s in data['para']]
+        persons = []
+        for n in persons_as_list:
+            persons.extend(n)
+        
+        dates_as_list = [get_date_from_str(s) for s in data['para']]
+        dates = []
+        for n in dates_as_list:
+            dates.extend(n)
+
+        organisations_as_list = [get_organisations_from_str(s) for s in data['para']]
+        organisations = []
+        for n in organisations_as_list:
+            organisations.extend(n)
         
         results_widget.entities_count.set(len(ents))
         results_widget.nouns_count.set(len(nouns))
         results_widget.verbs_count.set(len(verbs))
+        results_widget.persons_count.set(len(persons))
+        results_widget.dates_count.set(len(dates))
+        results_widget.organisations_count.set(len(organisations))
         results_widget.output.set('\n'.join(ents))
 
 
@@ -101,6 +122,9 @@ class ResultsFrame(ttk.Frame):
         self.entities_count = tk.IntVar()
         self.nouns_count = tk.IntVar()
         self.verbs_count = tk.IntVar()
+        self.persons_count = tk.IntVar()
+        self.dates_count = tk.IntVar()
+        self.organisations_count = tk.IntVar()
         self.output = tk.StringVar()
         self.output.trace_add('write', lambda *_: self.insert_text())
 
@@ -121,11 +145,11 @@ class ResultsFrame(ttk.Frame):
         ttk.Label(
             counts_frame, text='Nouns:',
             style='Results.TLabel'
-        ).grid(column=1, row=0, padx=10)
+        ).grid(column=1, row=0, padx=20)
         ttk.Label(
             counts_frame, style='Results.TLabel',
             textvariable=self.nouns_count
-        ).grid(column=1, row=1, padx=10)
+        ).grid(column=1, row=1, padx=20)
         
         # verbs counter
         ttk.Label(
@@ -136,6 +160,36 @@ class ResultsFrame(ttk.Frame):
             counts_frame, style='Results.TLabel',
             textvariable=self.verbs_count
         ).grid(column=2, row=1)
+
+        # persons counter
+        ttk.Label(
+            counts_frame, text='People:',
+            style='Results.TLabel'
+        ).grid(column=4, row=0, padx=20)
+        ttk.Label(
+            counts_frame, style='Results.TLabel',
+            textvariable=self.persons_count
+        ).grid(column=4, row=1, padx=20)
+
+        # dates counter
+        ttk.Label(
+            counts_frame, text='Dates:',
+            style='Results.TLabel'
+        ).grid(column=5, row=0)
+        ttk.Label(
+            counts_frame, style='Results.TLabel',
+            textvariable=self.dates_count
+        ).grid(column=5, row=1)
+
+        # organisations counter
+        ttk.Label(
+            counts_frame, text='Organisations:',
+            style='Results.TLabel'
+        ).grid(column=6, row=0, padx=20)
+        ttk.Label(
+            counts_frame, style='Results.TLabel',
+            textvariable=self.organisations_count
+        ).grid(column=6, row=1, padx=20)
         
         self.output_widget = tk.Text(self)
         self.output_widget.pack(side='top', padx=10, pady=(0, 10))
@@ -150,4 +204,3 @@ class ResultsFrame(ttk.Frame):
     def insert_text(self):
         self.output_widget.delete(1.0, 'end')
         self.output_widget.insert('insert', self.output.get())
-        
