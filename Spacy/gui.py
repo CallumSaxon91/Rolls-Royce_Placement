@@ -5,15 +5,10 @@ from tkinter import ttk, messagebox
 from appdirs import AppDirs
 from threading import Thread
 from PIL import Image, ImageTk
+from requests import ConnectionError
 
 from style import Style
-from process import (
-    get_data_from_url,
-    get_ents_from_str,
-    get_nouns_from_str,
-    get_verbs_from_str,
-    parse_string
-)
+from process import get_data_from_url, parse_string
 from exceptions import NotWikiPage, NoImageFound
 from utils import open_new_file
 
@@ -110,18 +105,25 @@ class AddressBar(ttk.Frame):
         try:
             data = get_data_from_url(url)
         except NotWikiPage:
+            log.error('cancelled search - entered url is invalid')
             self.update_gui_state(searching=False)
             messagebox.showerror(
                 title='Search Cancelled',
-                message='The URL entered does not lead ' \
-                        'to a wikipedia article. Try Again.'
-            )
-            log.debug(
-                'cancelled search because entered url is invalid'
+                message='The URL entered does not lead to a ' \ 
+                        'wikipedia article. Try Again.'
             )
             return
-
-        data = parse_string("".join(data['para']))
+        except ConnectionError:
+            log.error("couldn't establish connection with url")
+            self.update_gui_state(searching=False)
+            messagebox.showerror(
+                title='Connection Error',
+                message="Couldn't establish an internet connection. " \
+                        "Please check your internet connection and " \
+                        "try again."
+            )
+            return
+        data = parse_string("".join(data['content']))
         # output results to gui and save to file
         self.populate_fields(data)
         self.save_results(data)
