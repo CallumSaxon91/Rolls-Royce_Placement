@@ -1,40 +1,21 @@
 import logging
 from appdirs import AppDirs
-from pathlib import Path
 
 from gui import AppRoot
 from logs import setup_logs
+from utils import validate_dirs
 
 
 log = logging.getLogger(__name__)
-
-# validates the app directories
-def validate_dirs(dirs) -> None:
-    """Creates app directories if they don't already exist."""
-    log.info('validating app dirs')
-    Path(dirs.user_config_dir).mkdir(parents=True, exist_ok=True)
-    Path(dirs.user_log_dir).mkdir(parents=True, exist_ok=True)
+APP_NAME = 'SpacyResearch'
 
 if __name__ == '__main__':
-    app_name = 'SpacyResearch'
-
-    # runs validate_dirs functoin to validate directories before starting
-    dirs = AppDirs(app_name)
+    # validate directories before starting
+    dirs = AppDirs(APP_NAME)
     validate_dirs(dirs)
-
     # setup logging
     setup_logs(dirs)
-    log.debug(f'Starting {app_name}')
-
+    log.debug(f'Starting {APP_NAME}')
     # start the gui
-    app = AppRoot(app_name, dirs)
+    app = AppRoot(APP_NAME, dirs)
     app.mainloop()
-
-
-# import spacy
-
-# nlp = spacy.load('en_core_web_sm')
-
-# text = ''
-
-# doc = nlp(text)
