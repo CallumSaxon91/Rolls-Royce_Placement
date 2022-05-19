@@ -10,16 +10,18 @@ from style import Style
 from process import get_data_from_url, parse_string, parse_from_file
 from exceptions import NotWikiPage
 from utils import open_new_file, image
+from cfg import ConfigManager
 
 
 log = logging.getLogger(__name__)
 
 
 class AppRoot(tk.Tk):
-    def __init__(self, app_name:str, dirs:AppDirs):
+    def __init__(self, app_name:str, dirs:AppDirs, cfg:ConfigManager):
         super().__init__()
         self.app_name = app_name
         self.dirs = dirs
+        self.cfg = cfg
         # setup root window
         self.title(app_name)
         self.geometry('700x400')
