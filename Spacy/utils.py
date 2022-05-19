@@ -21,7 +21,7 @@ def validate_dirs(dirs) -> None:
     # directories with the project files
     for folder_name in ('output', 'assets'):
         Path(
-            __file__.removesuffix(f'{__name__}.py') + folder_name
+            f'{os.path.dirname(__file__)}\{folder_name}'
         ).mkdir(parents=True, exist_ok=True)
 
 def open_new_file(dir:str) -> TextIO:
@@ -35,8 +35,7 @@ def open_new_file(dir:str) -> TextIO:
         
 def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
     """returns PhotoImage object obtained from file path"""
-    fp = ASSETS_DIR + '/' + filename
-    print(fp)
+    fp = f'{ASSETS_DIR}\{filename}'
     if not os.path.exists(fp):
         log.error(f'could not find image at fp: {fp}')
         raise NoImageFound
