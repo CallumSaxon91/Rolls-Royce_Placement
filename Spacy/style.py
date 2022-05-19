@@ -76,7 +76,8 @@ theme_settings = {
         },
         "Treeview": {
             "configure": {
-                "fieldbackground": "gray85",
+                #"fieldbackground": "gray85",
+                "background": "lavender",
                 "highlightthickness": 0,
             },
             "layout": [

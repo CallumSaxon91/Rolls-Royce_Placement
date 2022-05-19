@@ -36,7 +36,7 @@ def open_new_file(dir:str) -> TextIO:
         
 def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
     """returns PhotoImage object obtained from file path"""
-    fp = ASSETS_DIR + '/' + filename
+    fp = ASSETS_DIR + f'\{filename}'
     print(fp)
     if not os.path.exists(fp):
         log.error(f'could not find image at fp: {fp}')
