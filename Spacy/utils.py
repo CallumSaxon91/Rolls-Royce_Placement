@@ -7,9 +7,8 @@ from itertools import count
 from PIL import Image, ImageTk
 
 from exceptions import NoImageFound
+from constants import FILENAME_FORMAT_PREFIX
 
-
-FILENAME_FORMAT_PREFIX = '%Y-%m-%d %H-%M-%S'
 
 log = logging.getLogger(__name__)
 
