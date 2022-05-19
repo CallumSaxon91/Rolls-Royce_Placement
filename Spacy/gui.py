@@ -42,7 +42,7 @@ class AppRoot(tk.Tk):
 
 class ImageButton(ttk.Button):
     def __init__(
-            self, master, img_fn:str, img_size:tuple[int, int], **kw
+            self, master, img_fn:str, img_size:tuple, **kw
         ):
         self.img = image(img_fn, img_size)
         super().__init__(
@@ -162,7 +162,7 @@ class AddressBar(ttk.Frame):
         self.progress_bar.stop()
         self.search_btn.config(state='normal')
         
-    def populate_fields(self, data:list[tuple]):
+    def populate_fields(self, data):
         """output results to gui"""
         # results = self.master.results
         # results.entities_count.set(len(entities))
@@ -172,7 +172,7 @@ class AddressBar(ttk.Frame):
         self.master.notebook.entities_frame.populate_tree(data)
         log.debug('populated gui fields')
 
-    def save_results(self, content:list[tuple]):
+    def save_results(self, content):
         return
         file = open_new_file(os.getcwd() + '/output')
         file.write('\n'.join(entities))
@@ -211,7 +211,7 @@ class ResultsFrame(ttk.Frame):
         self.tree.tag_configure('even', background='gray85')
         self.tree.tag_configure('odd', background='gray80')
 
-    def populate_tree(self, content:list[list]):
+    def populate_tree(self, content):
         """populates tree from 2d array"""
         # self.tree.delete(*self.tree.winfo_children())
         self.tree.delete(*self.tree.get_children())

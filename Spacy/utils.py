@@ -20,10 +20,6 @@ def validate_dirs(dirs) -> None:
     Path(dirs.user_config_dir).mkdir(parents=True, exist_ok=True)
     Path(dirs.user_log_dir).mkdir(parents=True, exist_ok=True)
     # directories with the project files
-    for folder_name in ('output', 'assets'):
-        Path(
-            __file__.removesuffix(f'{__name__}.py') + folder_name
-        ).mkdir(parents=True, exist_ok=True)
 
 def open_new_file(dir:str) -> TextIO:
     timestamp = datetime.now().strftime(FILENAME_FORMAT_PREFIX)
@@ -34,7 +30,7 @@ def open_new_file(dir:str) -> TextIO:
         except FileExistsError:
             continue
         
-def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
+def image(filename:str, size:tuple) -> ImageTk.PhotoImage:
     """returns PhotoImage object obtained from file path"""
     fp = 'assets/' + filename
     if not os.path.exists(fp):
