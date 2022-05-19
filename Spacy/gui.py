@@ -104,11 +104,8 @@ class AddressBar(ttk.Frame):
         self.search_term.set(fp)
 
     def on_save_btn(self):
-        messagebox.showinfo(
-            title='feature not added',
-            message='feature not added'
-        )
-        raise NotImplementedError
+        fp = filedialog.askdirectory(mustexist=True)
+        self.master.notebook.entities_frame.save(fp)
 
     def on_search_btn(self, event:tk.Event=None):
         search_thread = Thread(target=self.search)
@@ -144,7 +141,9 @@ class AddressBar(ttk.Frame):
         data = parse_string("".join(data['content']))
         # output results to gui and save to file
         self.populate_fields(data)
-        self.master.notebook.entities_frame.save()
+        settings = self.master.notebook.settings_frame
+        if settings.auto_save.get():
+            self.master.notebook.entities_frame.save()
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
 
@@ -208,15 +207,15 @@ class ResultsFrame(ttk.Frame):
             tag = 'even' if i % 2 == 0 else 'odd'
             self.tree.insert('', 'end', values=item, tags=(tag,))
 
-    def save(self):
+    def save(self, fp:str=''):
         settings = self.master.settings_frame
-        if not settings.auto_save.get():
-            return
         data = [
             self.tree.item(row)['values'] \
             for row in self.tree.get_children()
             ]
-        fp = settings.auto_save_path.get() + '/output.csv'
+        if not fp: 
+            fp = settings.auto_save_path.get()
+        fp += '/output.csv'
         export_to_csv(data, fp)
 
 
