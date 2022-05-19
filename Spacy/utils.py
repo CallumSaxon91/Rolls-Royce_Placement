@@ -7,7 +7,7 @@ from itertools import count
 from PIL import Image, ImageTk
 
 from exceptions import NoImageFound
-from constants import FILENAME_FORMAT_PREFIX
+from constants import FILENAME_FORMAT_PREFIX, ASSETS_DIR
 
 
 log = logging.getLogger(__name__)
@@ -35,7 +35,8 @@ def open_new_file(dir:str) -> TextIO:
         
 def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
     """returns PhotoImage object obtained from file path"""
-    fp = 'assets/' + filename
+    fp = ASSETS_DIR + '/' + filename
+    print(fp)
     if not os.path.exists(fp):
         log.error(f'could not find image at fp: {fp}')
         raise NoImageFound
