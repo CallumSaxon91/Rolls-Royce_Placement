@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from appdirs import AppDirs
 from threading import Thread
-from requests import ConnectionError
+from requests import ConnectionError as ResquestsConnectionError
 
 from style import Style
 from process import get_data_from_url, parse_string, parse_from_file
@@ -20,7 +20,6 @@ class AppRoot(tk.Tk):
         super().__init__()
         self.app_name = app_name
         self.dirs = dirs
-
         # setup root window
         self.title(app_name)
         self.geometry('700x400')
@@ -28,18 +27,15 @@ class AppRoot(tk.Tk):
             os.path.dirname(__file__) + r'\assets\icon.ico'
         )
         #self.resizable(False, False)
-
         # create and show controls
         self.addbar = AddressBar(self)
         self.addbar.pack(fill='x')
         self.notebook = Notebook(self)
         self.notebook.pack(fill='both', expand=True)
-
         # setup style
         # style must be setup after creating the controls because some
         # widgets can only be stylized after creation.
         self.style = Style(self)
-
         log.debug('app root initialized')
 
 
@@ -49,7 +45,7 @@ class ImageButton(ttk.Button):
         ):
         self.img = image(img_fn, img_size)
         super().__init__(
-            master, image=self.img, cursor='hand2', 
+            master, image=self.img, cursor='hand2',
             style='AddressBarImg.TButton', **kw
         )
 
@@ -80,14 +76,14 @@ class AddressBar(ttk.Frame):
             mode='indeterminate',
         )
         self.file_btn = ImageButton(
-            self, img_fn='file.png', img_size=(20, 18), 
+            self, img_fn='file.png', img_size=(20, 18),
             command=self.on_file_btn
         )
         self.file_btn.pack(side='right', padx=5)
         sep = ttk.Separator(self, orient='vertical')
         sep.pack(side='right', before=self.file_btn, fill='y', pady=5)
         self.save_btn = ImageButton(
-            self, img_fn='save.png', img_size=(20, 20), 
+            self, img_fn='save.png', img_size=(20, 20),
             command=self.on_save_btn
         )
         self.save_btn.pack(side='right', padx=5, before=sep)
@@ -106,10 +102,9 @@ class AddressBar(ttk.Frame):
         )
         self.search_term.set(fp)
 
-    
     def on_save_btn(self):
         messagebox.showinfo(
-            title='feature not added', 
+            title='feature not added',
             message='feature not added'
         )
         raise NotImplementedError
@@ -135,7 +130,7 @@ class AddressBar(ttk.Frame):
                         'wikipedia article. Try Again.'
             )
             return
-        except ConnectionError:
+        except RequestsConnectionError:
             log.error("couldn't establish connection with url")
             self.update_gui_state(searching=False)
             messagebox.showerror(
@@ -151,7 +146,7 @@ class AddressBar(ttk.Frame):
         self.save_results(data)
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
-        
+
     def update_gui_state(self, searching:bool):
         """Enables or disables addressbar widgets"""
         if searching:
@@ -164,7 +159,7 @@ class AddressBar(ttk.Frame):
         self.progress_bar.pack_forget()
         self.progress_bar.stop()
         self.search_btn.config(state='normal')
-        
+
     def populate_fields(self, data:list[tuple]):
         """output results to gui"""
         # results = self.master.results
@@ -197,6 +192,7 @@ class Notebook(ttk.Notebook):
 
 
 class ResultsFrame(ttk.Frame):
+    """"""
     def __init__(self, master):
         super().__init__(master)
         master.add(self, text='Results')
@@ -221,15 +217,17 @@ class ResultsFrame(ttk.Frame):
         for i, item in enumerate(content):
             tag = 'even' if i % 2 == 0 else 'odd'
             self.tree.insert('', 'end', values=item, tags=(tag,))
-            
+
 
 class LegendFrame(ttk.Frame):
+    """"""
     def __init__(self, master):
         super().__init__(master)
         self.master.add(self, text='Legend')
-        
+
 
 class SettingsFrame(ttk.Frame):
+    """"""
     def __init__(self, master):
         super().__init__(master)
         self.master.add(self, text='Settings')

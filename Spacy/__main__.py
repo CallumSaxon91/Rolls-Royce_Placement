@@ -6,6 +6,7 @@ from logs import setup_logs
 from utils import validate_dirs
 from constants import APP_NAME
 
+
 log = logging.getLogger(__name__)
 
 if __name__ == '__main__':
