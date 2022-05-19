@@ -1,4 +1,5 @@
 import os
+import csv
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -42,3 +43,14 @@ def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
     im = Image.open(fp)
     im = im.resize(size, Image.ANTIALIAS)
     return ImageTk.PhotoImage(im)
+
+def export_to_csv(data:list[list], fp:str):
+    """Export 2d array to list"""
+    with open(fp, 'w', newline='') as file:
+        writer = csv.writer(file, delimiter=',')
+        writer.writerows(data)
+
+def import_from_csv(fp:str) -> list:
+    with open(fp, 'r', newline='') as file:
+        rows = csv.read(file, delimiter=',')
+    return rows

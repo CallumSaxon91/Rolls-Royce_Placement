@@ -1,17 +1,16 @@
-import os
 import logging
+import os
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
-from appdirs import AppDirs
 from threading import Thread
+from tkinter import filedialog, messagebox, ttk
+from appdirs import AppDirs
 from requests import ConnectionError as RequestsConnectionError
 
-from style import Style
-from process import get_data_from_url, parse_string, parse_from_file
-from exceptions import NotWikiPage
-from utils import open_new_file, image
 from cfg import ConfigManager
-
+from exceptions import NotWikiPage
+from process import get_data_from_url, parse_from_file, parse_string
+from style import Style
+from utils import image, open_new_file, export_to_csv
 
 log = logging.getLogger(__name__)
 
@@ -145,7 +144,7 @@ class AddressBar(ttk.Frame):
         data = parse_string("".join(data['content']))
         # output results to gui and save to file
         self.populate_fields(data)
-        self.save_results(data)
+        self.master.notebook.entities_frame.save()
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
 
@@ -164,20 +163,9 @@ class AddressBar(ttk.Frame):
 
     def populate_fields(self, data:list[tuple]):
         """output results to gui"""
-        # results = self.master.results
-        # results.entities_count.set(len(entities))
-        # results.nouns_count.set(len(nouns))
-        # results.verbs_count.set(len(verbs))
-        # results.output.set('\n'.join(entities))
         self.master.notebook.entities_frame.populate_tree(data)
         log.debug('populated gui fields')
 
-    def save_results(self, content:list[tuple]):
-        return
-        file = open_new_file(os.getcwd() + '/output')
-        file.write('\n'.join(entities))
-        file.close()
-        log.debug('saved results to output file')
 
 class Notebook(ttk.Notebook):
     """Tkinter frame that ouputs results from spacy"""
@@ -220,6 +208,17 @@ class ResultsFrame(ttk.Frame):
             tag = 'even' if i % 2 == 0 else 'odd'
             self.tree.insert('', 'end', values=item, tags=(tag,))
 
+    def save(self):
+        settings = self.master.settings_frame
+        if not settings.auto_save.get():
+            return
+        data = [
+            self.tree.item(row)['values'] \
+            for row in self.tree.get_children()
+            ]
+        fp = settings.auto_save_path.get() + '/output.csv'
+        export_to_csv(data, fp)
+
 
 class LegendFrame(ttk.Frame):
     """"""
@@ -228,8 +227,58 @@ class LegendFrame(ttk.Frame):
         self.master.add(self, text='Legend')
 
 
+class CheckBoxSetting(ttk.Frame):
+    def __init__(self, master, label:str, desc:str, variable, **kw):
+        super().__init__(master, style='CheckButton.TFrame', **kw)
+        ttk.Label(
+            self, text=label, style='CheckBox.TLabel'
+        ).grid(column=0, row=0, sticky='w')
+        ttk.Checkbutton(
+            self, variable=variable, style='CheckBox.TCheckbutton'
+        ).grid(column=1, row=0, sticky='w')
+        ttk.Label(
+            self, text=desc, style='CheckBoxDesc.TLabel'
+        ).grid(column=0, row=1, columnspan=3, sticky='w')
+
+
+class TextSetting(ttk.Frame):
+    def __init__(self, master, label:str, desc:str, variable, **kw):
+        super().__init__(master, style='Entry.TFrame', **kw)
+        ttk.Label(
+            self, text=label, style='Entry.TLabel'
+        ).grid(column=0, row=0, sticky='w')
+        ttk.Entry(
+            self, textvariable=variable, style='Entry.TEntry'
+        ).grid(column=1, row=0, sticky='w')
+        ttk.Label(
+            self, text=desc, style='Entry.TLabel'
+        ).grid(column=0, row=1, columnspan=3, sticky='w')
+
+
 class SettingsFrame(ttk.Frame):
     """"""
     def __init__(self, master):
         super().__init__(master)
         self.master.add(self, text='Settings')
+        cfg: ConfigManager = self.master.master.cfg
+        for name, setting in cfg.create_settings_vars():
+            setattr(self, name, setting)
+        padx, pady = 10, 10
+        self.auto_save_checkbox = CheckBoxSetting(
+            self, label='Enable auto save',
+            desc='Automatically save results to a file',
+            variable=self.auto_save
+        )
+        self.auto_save_checkbox.pack(anchor='w', padx=padx, pady=pady)
+        self.auto_save_path_entry = TextSetting(
+            self, label='Auto save path',
+            desc='Where auto saved files are stored',
+            variable=self.auto_save_path
+        )
+        self.auto_save_path_entry.pack(anchor='w', padx=padx, pady=pady)
+        self.fast_search_checkbox = CheckBoxSetting(
+            self, label='Enable fast search',
+            desc='Actively output results while searching (slow)',
+            variable=self.quick_search
+        )
+        self.fast_search_checkbox.pack(anchor='w', padx=padx, pady=pady)
