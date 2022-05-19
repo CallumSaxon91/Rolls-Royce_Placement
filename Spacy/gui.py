@@ -24,6 +24,9 @@ class AppRoot(tk.Tk):
         # setup root window
         self.title(app_name)
         self.geometry('700x400')
+        self.iconbitmap(
+            os.path.dirname(__file__) + r'\assets\icon.ico'
+        )
         #self.resizable(False, False)
 
         # create and show controls
