@@ -1,19 +1,15 @@
 import os
 import logging
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, filedialog
 from appdirs import AppDirs
 from threading import Thread
+from requests import ConnectionError
 
 from style import Style
-from process import (
-    get_data_from_url,
-    get_ents_from_str,
-    get_nouns_from_str,
-    get_verbs_from_str
-)
+from process import get_data_from_url, parse_string, parse_from_file
 from exceptions import NotWikiPage
-from utils import open_new_file
+from utils import open_new_file, image
 
 
 log = logging.getLogger(__name__)
@@ -28,14 +24,16 @@ class AppRoot(tk.Tk):
         # setup root window
         self.title(app_name)
         self.geometry('700x400')
-        self.resizable(False, False)
+        self.iconbitmap(
+            os.path.dirname(__file__) + r'\assets\icon.ico'
+        )
+        #self.resizable(False, False)
 
         # create and show controls
         self.addbar = AddressBar(self)
         self.addbar.pack(fill='x')
-        ttk.Separator(self).pack(side='top', fill='x')
-        self.results = ResultsFrame(self)
-        self.results.pack(fill='both', expand=True)
+        self.notebook = Notebook(self)
+        self.notebook.pack(fill='both', expand=True)
 
         # setup style
         # style must be setup after creating the controls because some
@@ -43,6 +41,17 @@ class AppRoot(tk.Tk):
         self.style = Style(self)
 
         log.debug('app root initialized')
+
+
+class ImageButton(ttk.Button):
+    def __init__(
+            self, master, img_fn:str, img_size:tuple[int, int], **kw
+        ):
+        self.img = image(img_fn, img_size)
+        super().__init__(
+            master, image=self.img, cursor='hand2', 
+            style='AddressBarImg.TButton', **kw
+        )
 
 
 class AddressBar(ttk.Frame):
@@ -54,7 +63,7 @@ class AddressBar(ttk.Frame):
         )
         self.search_btn = ttk.Button(
             self, text='Search', style='AddressBar.TButton',
-            command=self.on_search
+            command=self.on_search_btn
         )
         self.search_btn.pack(side='left', fill='y', padx=5, pady=5)
         self.search_bar = ttk.Entry(
@@ -63,73 +72,117 @@ class AddressBar(ttk.Frame):
         )
         self.search_bar.pack(
             side='left', fill='both',
-            expand=True, padx=(0, 5), pady=5
+            expand=True, pady=5
         )
-        self.search_bar.bind('<Return>', self.on_search)
+        self.search_bar.bind('<Return>', self.on_search_btn)
         self.progress_bar = ttk.Progressbar(
             orient='horizontal',
             mode='indeterminate',
         )
+        self.file_btn = ImageButton(
+            self, img_fn='file.png', img_size=(20, 18), 
+            command=self.on_file_btn
+        )
+        self.file_btn.pack(side='right', padx=5)
+        sep = ttk.Separator(self, orient='vertical')
+        sep.pack(side='right', before=self.file_btn, fill='y', pady=5)
+        self.save_btn = ImageButton(
+            self, img_fn='save.png', img_size=(20, 20), 
+            command=self.on_save_btn
+        )
+        self.save_btn.pack(side='right', padx=5, before=sep)
 
-    def on_search(self, event:tk.Event=None):
+    def on_file_btn(self):
+        m = messagebox.askokcancel(
+            title='Open File',
+            message = 'You can use a text file as input data to ' \
+                    'parse. The file can contain urls separated by ' \
+                    ' a line break or a string of characters to be ' \
+                    'parsed.'
+        )
+        if not m: return
+        fp = filedialog.askopenfilename(
+            filetypes=(('Text File', '*.txt'),)
+        )
+        self.search_term.set(fp)
+
+    
+    def on_save_btn(self):
+        messagebox.showinfo(
+            title='feature not added', 
+            message='feature not added'
+        )
+        raise NotImplementedError
+
+    def on_search_btn(self, event:tk.Event=None):
         search_thread = Thread(target=self.search)
         search_thread.daemon = True
         search_thread.start()
 
     def search(self):
-        """Search the web to find """
+        url = self.search_term.get()
+        log.debug(f'starting search for: {url}')
         # update gui to reflect searching in progress
-        self.progress_bar.pack(self.search_bar.pack_info())
-        self.progress_bar.start(20)
-        self.search_bar.pack_forget()
-        self.search_btn.config(state='disabled')
-
+        self.update_gui_state(searching=True)
         try:
             data = get_data_from_url(self.search_term.get())
         except NotWikiPage:
+            log.error('cancelled search - entered url is invalid')
+            self.update_gui_state(searching=False)
             messagebox.showerror(
-                title='Error',
-                message='The URL entered does not lead ' \
-                        'to a wikipedia article. Try Again.'
+                title='Search Cancelled',
+                message='The URL entered does not lead to a ' \
+                        'wikipedia article. Try Again.'
             )
             return
-        def get_data_from_para(func) -> list:
-            """use to get data from entities"""
-            entities = [func(s) for s in data['para']]
-            result = []
-            for entity in entities:
-                result.extend(entity)
-            return result
-        # get lists of various data from collected paragraphs
-        ents = get_data_from_para(get_ents_from_str)
-        nouns = get_data_from_para(get_nouns_from_str)
-        verbs = get_data_from_para(get_verbs_from_str)
-        # output results to gui
-        self.populate_fields(ents, nouns, verbs)
-        # write results to output file
-        self.save_results(ents, nouns, verbs)
+        except ConnectionError:
+            log.error("couldn't establish connection with url")
+            self.update_gui_state(searching=False)
+            messagebox.showerror(
+                title='Connection Error',
+                message="Couldn't establish an internet connection. " \
+                        "Please check your internet connection and " \
+                        "try again."
+            )
+            return
+        data = parse_string("".join(data['content']))
+        # output results to gui and save to file
+        self.populate_fields(data)
+        self.save_results(data)
         # update gui to show searching has finished
+        self.update_gui_state(searching=False)
+        
+    def update_gui_state(self, searching:bool):
+        """Enables or disables addressbar widgets"""
+        if searching:
+            self.progress_bar.pack(self.search_bar.pack_info())
+            self.progress_bar.start(5)
+            self.search_bar.pack_forget()
+            self.search_btn.config(state='disabled')
+            return
         self.search_bar.pack(self.progress_bar.pack_info())
         self.progress_bar.pack_forget()
         self.progress_bar.stop()
         self.search_btn.config(state='normal')
         
-    def populate_fields(self, entities:list, nouns:list, verbs:list):
+    def populate_fields(self, data:list[tuple]):
         """output results to gui"""
-        results = self.master.results
-        results.entities_count.set(len(entities))
-        results.nouns_count.set(len(nouns))
-        results.verbs_count.set(len(verbs))
-        results.output.set('\n'.join(entities))
+        # results = self.master.results
+        # results.entities_count.set(len(entities))
+        # results.nouns_count.set(len(nouns))
+        # results.verbs_count.set(len(verbs))
+        # results.output.set('\n'.join(entities))
+        self.master.notebook.entities_frame.populate_tree(data)
         log.debug('populated gui fields')
 
-    def save_results(self, entities:list, nouns:list, verbs:list):
+    def save_results(self, content:list[tuple]):
+        return
         file = open_new_file(os.getcwd() + '/output')
         file.write('\n'.join(entities))
         file.close()
         log.debug('saved results to output file')
 
-class ResultsFrame(ttk.Frame):
+class Notebook(ttk.Notebook):
     """Tkinter frame that ouputs results from spacy"""
     def __init__(self, master:tk.Tk):
         super().__init__(master)
@@ -138,47 +191,45 @@ class ResultsFrame(ttk.Frame):
         self.verbs_count = tk.IntVar()
         self.output = tk.StringVar()
         self.output.trace_add('write', lambda *_: self.insert_text())
+        self.entities_frame = ResultsFrame(self)
+        self.legend_frame = LegendFrame(self)
+        self.settings_frame = SettingsFrame(self)
 
-        counts_frame = ttk.Frame(self)
-        counts_frame.pack(side='top', pady=5)
-        # entities counter
-        ttk.Label(
-            counts_frame, text='Entities:',
-            style='Results.TLabel'
-        ).grid(column=0, row=0)
-        ttk.Label(
-            counts_frame, style='Results.TLabel',
-            textvariable=self.entities_count
-        ).grid(column=0, row=1)
-        # nouns counter
-        ttk.Label(
-            counts_frame, text='Nouns:',
-            style='Results.TLabel'
-        ).grid(column=1, row=0, padx=10)
-        ttk.Label(
-            counts_frame, style='Results.TLabel',
-            textvariable=self.nouns_count
-        ).grid(column=1, row=1, padx=10)
-        # verbs counter
-        ttk.Label(
-            counts_frame, text='Verbs:',
-            style='Results.TLabel'
-        ).grid(column=2, row=0)
-        ttk.Label(
-            counts_frame, style='Results.TLabel',
-            textvariable=self.verbs_count
-        ).grid(column=2, row=1)
-        # text box for output
-        self.output_widget = tk.Text(self)
-        self.output_widget.pack(side='top', padx=10, pady=(0, 10))
-        # scrollbar for output widget
-        scroller = ttk.Scrollbar(
-            master, orient='vertical',
-            command=self.output_widget.yview
+
+class ResultsFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        master.add(self, text='Results')
+        headings = ('words', 'category', 'type')
+        self.tree = ttk.Treeview(
+            self, show='headings', columns=headings
         )
+        self.tree.pack(side='left', fill='both', expand=True)
+        for heading in headings:
+            self.tree.column(heading, anchor='w')
+            self.tree.heading(heading, text=heading.capitalize())
+        scroller = ttk.Scrollbar(self, command=self.tree.yview)
         scroller.pack(side='right', fill='y')
-        self.output_widget.config(yscrollcommand=scroller.set)
+        self.tree.config(yscrollcommand=scroller.set)
+        self.tree.tag_configure('even', background='gray85')
+        self.tree.tag_configure('odd', background='gray80')
 
-    def insert_text(self):
-        self.output_widget.delete(1.0, 'end')
-        self.output_widget.insert('insert', self.output.get())
+    def populate_tree(self, content:list[list]):
+        """populates tree from 2d array"""
+        # self.tree.delete(*self.tree.winfo_children())
+        self.tree.delete(*self.tree.get_children())
+        for i, item in enumerate(content):
+            tag = 'even' if i % 2 == 0 else 'odd'
+            self.tree.insert('', 'end', values=item, tags=(tag,))
+            
+
+class LegendFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.master.add(self, text='Legend')
+        
+
+class SettingsFrame(ttk.Frame):
+    def __init__(self, master):
+        super().__init__(master)
+        self.master.add(self, text='Settings')

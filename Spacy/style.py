@@ -1,6 +1,8 @@
 from tkinter import ttk
 bcolor = "azure"
 
+
+# this should really be cleaned up soon
 theme_settings = {
     "tk": {
         "Text": {
@@ -19,6 +21,11 @@ theme_settings = {
         "TLabel": {
             "configure": {
                 "background": "lavender"
+            }
+        },
+        "Horizontal.TProgressbar": {
+            "configure": {
+                "background": "forest green"
             }
         },
         "AddressBar.TFrame": {
@@ -41,10 +48,47 @@ theme_settings = {
                 ]
             }
         },
+        "AddressBarImg.TButton": {
+            "configure": {
+                "focuscolor": "gray85"
+            }
+        },
         "AddressBar.TEntry": {
             "configure": {
                 "background": bcolor,
-                "padding": [3, 0, 3, 0]
+                
+                "padding": [3, 0, 3, 0],
+                "selectforeground": "white",
+                "selectbackground": "DodgerBlue"
+            }
+        },
+        "TNotebook.Tab": {
+            "configure": {
+                "background": "gray75",
+                "focuscolor": "gray85",
+                "padding": [7, 0, 7, 0]
+            },
+            "map": {
+                "background": [
+                    ["selected", "gray85"]
+                ]
+            }
+        },
+        "Treeview": {
+            "configure": {
+                "fieldbackground": "gray85",
+                "highlightthickness": 0,
+            },
+            "layout": [
+                [
+                    "treeview.treearea", 
+                    {"sticky": "nsew"}
+                ]
+            ]
+        },
+        "Treeview.Heading": {
+            "configure": {
+                "background": "gray75"
             }
         }
     }
