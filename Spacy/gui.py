@@ -4,7 +4,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 from appdirs import AppDirs
 from threading import Thread
-from requests import ConnectionError as ResquestsConnectionError
+from requests import ConnectionError as RequestsConnectionError
 
 from style import Style
 from process import get_data_from_url, parse_string, parse_from_file
