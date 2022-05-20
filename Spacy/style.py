@@ -15,6 +15,13 @@ theme_settings = {
             "configure": {
             }
         },
+        "TEntry": {
+            "configure": {
+                "padding": [3, 0, 3, 0],
+                "selectforeground": "white",
+                "selectbackground": "DodgerBlue"
+            }
+        },
         "Horizontal.TProgressbar": {
             "configure": {
                 "background": "forest green"
@@ -51,9 +58,6 @@ theme_settings = {
         },
         "AddressBar.TEntry": {
             "configure": {
-                "padding": [3, 0, 3, 0],
-                "selectforeground": "white",
-                "selectbackground": "DodgerBlue"
             }
         },
         "SettingWidget.TFrame": {
