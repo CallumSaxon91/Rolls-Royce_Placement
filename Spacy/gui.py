@@ -237,33 +237,32 @@ class LegendFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
         self.master.add(self, text='Legend')
+        headings = ('entities', '', 'Part Of Speech', '')
+        self.tree = ttk.Treeview(
+            self, show='headings', columns=headings
+        )
+        self.tree.pack(side='left', fill='both', expand=True)
+        for heading in headings:
+            self.tree.column(heading, anchor='w',  width=100)
+            self.tree.heading(heading, text=heading.title())
+        scroller = ttk.Scrollbar(self, command=self.tree.yview)
+        scroller.pack(side='right', fill='y')
+        self.tree.config(yscrollcommand=scroller.set)
+        self.tree.tag_configure('even', background='gray85')
+        self.tree.tag_configure('odd', background='gray80')
+        # populate tree
+        settings = master.master.cfg
+        entities = settings['entities']
+        word_classes = settings['POS_tags']
+        # for k1, k2, v1, v2 in entities.items(), word_classes.items():
+        #     print(k1, v1, k2, v2)
+        for i, (entity, pos) in enumerate(zip(entities.items(), word_classes.items())):
+            tag = 'even' if i % 2 == 0 else 'odd'
+            self.tree.insert('', 'end', values=entity+pos, tags=(tag,))
+        # for i, item in enumerate(content):
+        #     tag = 'even' if i % 2 == 0 else 'odd'
+        #     self.tree.insert('', 'end', values=item, tags=(tag,))
         
-        entities = [
-            ('PEOPLE', 'People, including fictional characters.'),
-            ('NORP', 'Nationalities or religious or political groups.'),
-            ('FAC', 'Buildings, airports, highways, bridges, etc.'),
-            ('ORG', 'Companies, agencies, institutions, etc.'),
-            ('LOC', 'Non-GPE locations, mountain ranges, bodies of water.'),
-            ('PRODUCT', 'Objects, vehicles, foods, etc. (Not services.)'),
-            ('EVENT', 'Named hurricanes, battles, wars, sports events, etc.'),
-            ('WORK_OF_ART', 'Titles of books, songs, etc.'),
-            ('LAW', 'Named documents made into laws.'),
-            ('LANGUAGE', 'Any named language.'),
-            ('DATE', 'Absolute or relative dates or periods.'),
-            ('TIME', 'Times smaller than a day.'),
-            ('PERCENT', 'Percentage, including ”%“.'),
-            ('MONEY', 'Monetary values, including unit.'),
-            ('QUANTITY', 'Measurements, as of weight or distance.'),
-            ('ORDINAL', '“first”, “second”, etc.'),
-            ('CARDINAL', 'Numerals that do not fall under another type.')
-        ]
-        for i, entity in enumerate(entities):
-            ttk.Label(
-                self, text=entity[0]
-            ).grid(column=0, row=i)
-            ttk.Label(
-                self, text=entity[1]
-            ).grid(column=1, row=i)
 
 
 class SettingWidget(ttk.Frame):
@@ -322,7 +321,6 @@ class SettingsFrame(ttk.Frame):
         self.master.add(self, text='Settings')
         cfg: ConfigManager = self.master.master.cfg
         for name, setting in cfg.create_settings_vars():
-            print('setattr', name, setting, setting.get())
             setattr(self, name, setting)
         frame = ttk.Frame(self)
         frame.pack(side='top', anchor='w')

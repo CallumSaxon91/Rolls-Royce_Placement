@@ -47,7 +47,7 @@ def parse_string(string:str):
     """
     doc = npl(string)
     result = np.array([[t.text, t.ent_type_, t.pos_] for t in doc])
-    result[np.where(result=='')] = 'No Category'
+    result[np.where(result=='')] = 'not an entity'
     return result.tolist()
 
 def parse_from_file(file:TextIOWrapper):
