@@ -8,9 +8,10 @@ from requests import ConnectionError as RequestsConnectionError
 
 from cfg import ConfigManager
 from exceptions import NotWikiPage
-from process import get_data_from_url, parse_from_file, parse_string
+from process import get_data_from_url, parse_string
 from style import Style
-from utils import image, open_new_file, export_to_csv
+from utils import image, export_to_csv
+from constants import EVEN, ODD
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ class AddressBar(ttk.Frame):
     
     def __init__(self, master):
         super().__init__(master, style='AddressBar.TFrame')
-        self.settings = self.master.notebook.settings_frame
+        self.settings = self.master.notebook.settings_tab
         self.search_term = tk.StringVar(
             value='https://en.wikipedia.org/wiki/'
         )
@@ -175,53 +176,80 @@ class AddressBar(ttk.Frame):
 
     def populate_fields(self, data:list[tuple]):
         """output results to gui"""
-        self.master.notebook.entities_frame.populate_tree(data)
+        self.master.notebook.results_tab.populate_tree(data)
         log.debug('populated gui fields')
+
+
+class CustomTreeView(ttk.Frame):
+    """Tkinter ttk treeview with a scrollbar"""
+    def __init__(self, master, headings, **kw):
+        super().__init__(master, **kw)
+        # Create treeview widget
+        self.tree = ttk.Treeview(
+            self, columns=headings, show='headings',
+            style='Treeview'
+        )
+        self.tree.tag_configure(EVEN, background='gray85')
+        self.tree.tag_configure(ODD, background='gray80')
+        self.tree.pack(side='left', fill='both', expand=True)
+        # Setup treeview headings
+        for heading in headings:
+            self.tree.column(heading, anchor='w', width=100)
+            self.tree.heading(heading, text=heading.title())
+        # Create scrollbar for treeview
+        scroller = ttk.Scrollbar(self, command=self.tree.yview)
+        scroller.pack(side='right', fill='y')
+        self.tree.config(yscrollcommand=scroller.set)
+        
+    def insert_by_row(self, content):
+        for i, item in enumerate(content):
+            tag = EVEN if i % 2 == 0 else ODD
+            self.tree.insert('', 'end', values=item, tags=(tag,))
+            
+    def insert(self, *args, **kw):
+        self.tree.insert(*args, **kw)
+        
+    def delete(self, *args, **kw):
+        """delete data from treeview widget"""
+        self.tree.delete(*args, **kw)
+        
+    def get_children(self, *args, **kw):
+        """retrieve data from treeview widget"""
+        return self.tree.get_children(*args, **kw)
 
 
 class Notebook(ttk.Notebook):
     """Tkinter frame that ouputs results from spacy"""
     def __init__(self, master:tk.Tk):
         super().__init__(master)
-        self.entities_count = tk.IntVar()
-        self.nouns_count = tk.IntVar()
-        self.verbs_count = tk.IntVar()
-        self.output = tk.StringVar()
-        self.output.trace_add('write', lambda *_: self.insert_text())
-        self.entities_frame = ResultsFrame(self)
-        self.legend_frame = LegendFrame(self)
-        self.settings_frame = SettingsFrame(self)
+        # Create notebook tabs
+        self.results_tab = ResultsFrame(self)
+        self.legend_tab = LegendFrame(self)
+        self.settings_tab = SettingsFrame(self)
+        # Register notebook tabs
+        self.add(self.results_tab, text='Results')
+        self.add(self.legend_tab, text='Legend')
+        self.add(self.settings_tab, text='Settings')
 
 
 class ResultsFrame(ttk.Frame):
-    """"""
+    """Tkinter ttk Frame containing output for parsed data"""
     def __init__(self, master):
         super().__init__(master)
-        master.add(self, text='Results')
-        headings = ('words', 'entity type', 'word class')
-        self.tree = ttk.Treeview(
-            self, show='headings', columns=headings
+        # Create data tree for output
+        self.tree = CustomTreeView(
+            self, headings=('words', 'entity type', 'part of speech')
         )
-        self.tree.pack(side='left', fill='both', expand=True)
-        for heading in headings:
-            self.tree.column(heading, anchor='w')
-            self.tree.heading(heading, text=heading.title())
-        scroller = ttk.Scrollbar(self, command=self.tree.yview)
-        scroller.pack(side='right', fill='y')
-        self.tree.config(yscrollcommand=scroller.set)
-        self.tree.tag_configure('even', background='gray85')
-        self.tree.tag_configure('odd', background='gray80')
+        self.tree.pack(fill='both', expand=True)
 
     def populate_tree(self, content:list[list]):
-        """populates tree from 2d array"""
-        # self.tree.delete(*self.tree.winfo_children())
+        """Output data to data tree"""
         self.tree.delete(*self.tree.get_children())
-        for i, item in enumerate(content):
-            tag = 'even' if i % 2 == 0 else 'odd'
-            self.tree.insert('', 'end', values=item, tags=(tag,))
+        self.tree.insert_by_row(content)
 
     def save(self, fp:str=''):
-        settings = self.master.settings_frame
+        """Save output to csv file"""
+        settings = self.master.settings_tab
         data = [
             self.tree.item(row)['values'] \
             for row in self.tree.get_children()
@@ -236,33 +264,24 @@ class LegendFrame(ttk.Frame):
     """Contains widgets explaining spacy lingo stuff"""
     def __init__(self, master):
         super().__init__(master)
-        self.master.add(self, text='Legend')
-        headings = ('entities', '', 'Part Of Speech', '')
-        self.tree = ttk.Treeview(
-            self, show='headings', columns=headings
+        self.tree = CustomTreeView(
+            self, headings=('entities', '', 'Part Of Speech', '')
         )
-        self.tree.pack(side='left', fill='both', expand=True)
-        for heading in headings:
-            self.tree.column(heading, anchor='w',  width=100)
-            self.tree.heading(heading, text=heading.title())
-        scroller = ttk.Scrollbar(self, command=self.tree.yview)
-        scroller.pack(side='right', fill='y')
-        self.tree.config(yscrollcommand=scroller.set)
-        self.tree.tag_configure('even', background='gray85')
-        self.tree.tag_configure('odd', background='gray80')
+        self.tree.pack(fill='both', expand=True)
         # populate tree
         settings = master.master.cfg
         entities = settings['entities']
         word_classes = settings['POS_tags']
-        # for k1, k2, v1, v2 in entities.items(), word_classes.items():
-        #     print(k1, v1, k2, v2)
-        for i, (entity, pos) in enumerate(zip(entities.items(), word_classes.items())):
+        for i, (entity, pos) in enumerate(
+            zip(entities.items(), word_classes.items())
+        ):
             tag = 'even' if i % 2 == 0 else 'odd'
-            self.tree.insert('', 'end', values=entity+pos, tags=(tag,))
-        # for i, item in enumerate(content):
-        #     tag = 'even' if i % 2 == 0 else 'odd'
-        #     self.tree.insert('', 'end', values=item, tags=(tag,))
-        
+            values = entity + pos
+            values = [
+                v.upper() if values.index(v) % 2 == 0 else v \
+                for v in values
+            ]
+            self.tree.insert('', 'end', values=values, tags=(tag,))
 
 
 class SettingWidget(ttk.Frame):
@@ -318,7 +337,6 @@ class SettingsFrame(ttk.Frame):
     """Contains setting controls"""
     def __init__(self, master):
         super().__init__(master)
-        self.master.add(self, text='Settings')
         cfg: ConfigManager = self.master.master.cfg
         for name, setting in cfg.create_settings_vars():
             setattr(self, name, setting)
