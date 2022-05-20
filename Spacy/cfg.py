@@ -13,7 +13,7 @@ class ConfigManager(ConfigParser):
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
-        self.validate(force_restore=True)
+        self.validate()
         self.read(self.fp)
 
     def validate(self, force_restore:bool=False):
@@ -28,26 +28,20 @@ class ConfigManager(ConfigParser):
         with open(self.fp, 'w') as file: 
             self.write(file)
 
-    def update(self, section, option, value):
-        return  # TODO: here
-        self.set(section, option, str(value.get()))
+    def update(self, section, variable):
+        self.set(section, str(variable), str(variable.get()))
         with open(self.fp, 'w') as file:
-            print('wrote', self.sections('settings'))
             self.write(file)
 
     def create_settings_vars(self) -> list:
         """returns list of tk vars created from the configuration"""
         variables = []
-        for k, val in self['settings'].items():
+        for key, value in self['settings'].items():
             try:
-                val = strtobool(val)
-                var = tk.BooleanVar()
+                value = strtobool(value)
+                var = tk.BooleanVar(name=key)
             except ValueError:
-                var = tk.StringVar()
-            var.set(val)
-            var.trace_add(
-                'write', 
-                lambda *_: self.update('settings', k, var)
-            )
-            variables.append((k, var))
+                var = tk.StringVar(name=key)
+            var.set(value)
+            variables.append((key, var))
         return variables
