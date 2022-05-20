@@ -226,32 +226,51 @@ class LegendFrame(ttk.Frame):
         self.master.add(self, text='Legend')
 
 
-class CheckBoxSetting(ttk.Frame):
-    def __init__(self, master, label:str, desc:str, variable, **kw):
-        super().__init__(master, style='CheckButton.TFrame', **kw)
+class SettingWidget(ttk.Frame):
+    """Base widget for widgets in settings menu"""
+    def __init__(
+        self, master, label:str, desc:str, var:tk.Variable, **kw
+        ):
+        super().__init__(master, style='SettingWidget.TFrame', **kw)
+        self.columnconfigure(0, weight=1)
         ttk.Label(
-            self, text=label, style='CheckBox.TLabel'
-        ).grid(column=0, row=0, sticky='w')
+            self, text=label, style='SettingWidget.TLabel'
+        ).grid(column=0, row=0, sticky='w', padx=(0, 5))
+        ttk.Label(
+            self, text=desc, style='SettingWidgetDesc.TLabel'
+        ).grid(column=0, columnspan=2, row=2, sticky='w')
+        var.trace_add('write', self.on_update)
+        self.var = var
+        
+    def on_update(self, *args):
+        cfg = self.master.master.master.cfg  # this is just bad
+        cfg.update('settings', self.var)
+        try:
+            cfg.update('settings', self.var)
+        except AttributeError:
+            print('failed update attribute error')
+            pass  # TODO: logging
+
+
+class CheckBoxSetting(SettingWidget):
+    def __init__(
+            self, master, label:str, desc:str, var:tk.Variable, **kw
+        ):
+        super().__init__(master, label, desc, var, **kw)
         ttk.Checkbutton(
-            self, variable=variable, style='CheckBox.TCheckbutton'
+            self, variable=var, style='SettingWidget.TCheckbutton'
         ).grid(column=1, row=0, sticky='w')
-        ttk.Label(
-            self, text=desc, style='CheckBoxDesc.TLabel'
-        ).grid(column=0, row=1, columnspan=3, sticky='w')
 
 
-class TextSetting(ttk.Frame):
-    def __init__(self, master, label:str, desc:str, variable, **kw):
-        super().__init__(master, style='Entry.TFrame', **kw)
-        ttk.Label(
-            self, text=label, style='Entry.TLabel'
-        ).grid(column=0, row=0, sticky='w')
+class TextSetting(SettingWidget):
+    def __init__(
+        self, master, label:str, desc:str, var:tk.Variable, **kw
+        ):
+        super().__init__(master, label, desc, var, **kw)
+        print(var, var.get())
         ttk.Entry(
-            self, textvariable=variable, style='Entry.TEntry'
-        ).grid(column=1, row=0, sticky='w')
-        ttk.Label(
-            self, text=desc, style='Entry.TLabel'
-        ).grid(column=0, row=1, columnspan=3, sticky='w')
+            self, textvariable=var, style='SettingWidget.TEntry'
+        ).grid(column=0, columnspan=2, row=1, sticky='we')
 
 
 class SettingsFrame(ttk.Frame):
@@ -261,23 +280,28 @@ class SettingsFrame(ttk.Frame):
         self.master.add(self, text='Settings')
         cfg: ConfigManager = self.master.master.cfg
         for name, setting in cfg.create_settings_vars():
+            print('setattr', name, setting, setting.get())
             setattr(self, name, setting)
-        padx, pady = 10, 10
+        frame = ttk.Frame(self)
+        frame.pack(side='top', anchor='w')
+        pack_info = {
+            'fill': 'x', 'anchor': 'w', 'padx': 10, 'pady': 10
+        }
         self.auto_save_checkbox = CheckBoxSetting(
-            self, label='Enable auto save',
+            frame, label='Enable auto save',
             desc='Automatically save results to a file',
-            variable=self.auto_save
+            var=self.auto_save
         )
-        self.auto_save_checkbox.pack(anchor='w', padx=padx, pady=pady)
+        self.auto_save_checkbox.pack(pack_info)
         self.auto_save_path_entry = TextSetting(
-            self, label='Auto save path',
+            frame, label='Auto save path',
             desc='Where auto saved files are stored',
-            variable=self.auto_save_path
+            var=self.auto_save_path
         )
-        self.auto_save_path_entry.pack(anchor='w', padx=padx, pady=pady)
+        self.auto_save_path_entry.pack(pack_info)
         self.fast_search_checkbox = CheckBoxSetting(
-            self, label='Enable fast search',
+            frame, label='Enable fast search',
             desc='Actively output results while searching (slow)',
-            variable=self.quick_search
+            var=self.quick_search
         )
-        self.fast_search_checkbox.pack(anchor='w', padx=padx, pady=pady)
+        self.fast_search_checkbox.pack(pack_info)
