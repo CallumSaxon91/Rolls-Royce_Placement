@@ -1,6 +1,6 @@
 from tkinter import ttk
 
-
+# this should really be cleaned up soon
 theme_settings = {
     "tk": {
         "Text": {
@@ -13,6 +13,18 @@ theme_settings = {
     "ttk": {
         "TFrame": {
             "configure": {
+            }
+        },
+        "TEntry": {
+            "configure": {
+                "padding": [3, 0, 3, 0],
+                "selectforeground": "white",
+                "selectbackground": "DodgerBlue"
+            }
+        },
+        "Horizontal.TProgressbar": {
+            "configure": {
+                "background": "forest green"
             }
         },
         "AddressBar.TFrame": {
@@ -39,11 +51,36 @@ theme_settings = {
                 ]
             }
         },
+        "AddressBarImg.TButton": {
+            "configure": {
+                "focuscolor": "gray85"
+            }
+        },
         "AddressBar.TEntry": {
             "configure": {
-                "padding": [3, 0, 3, 0],
-                "selectforeground": "white",
-                "selectbackground": "DodgerBlue"
+            }
+        },
+        "SettingWidget.TFrame": {
+            "configure": {
+            }
+        },
+        "SettingWidget.TLabel": {
+            "configure": {
+                "font": "TkDefaultFont 10"
+            }
+        },
+        "SettingWidgetDesc.TLabel": {
+            "configure": {
+                "font": "TkDefaultFont 9"
+            }
+        },
+        "SettingWidget.TCheckbutton": {
+            "configure": {
+                "focuscolor": "gray85"
+            }
+        },
+        "SettingWidget.TEntry": {
+            "configure": {
             }
         },
         "TNotebook.Tab": {
@@ -62,11 +99,17 @@ theme_settings = {
             "configure": {
                 "fieldbackground": "gray85",
                 "highlightthickness": 0,
-            }
+            },
+            "layout": [
+                [
+                    "treeview.treearea", 
+                    {"sticky": "nsew"}
+                ]
+            ]
         },
         "Treeview.Heading": {
             "configure": {
-                "background": "gray70"
+                "background": "gray75"
             }
         }
     }

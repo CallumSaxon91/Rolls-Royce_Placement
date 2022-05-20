@@ -4,10 +4,11 @@ from appdirs import AppDirs
 from gui import AppRoot
 from logs import setup_logs
 from utils import validate_dirs
+from cfg import ConfigManager
+from constants import APP_NAME
 
 
 log = logging.getLogger(__name__)
-APP_NAME = 'SpacyResearch'
 
 if __name__ == '__main__':
     # validate directories before starting
@@ -16,6 +17,8 @@ if __name__ == '__main__':
     # setup logging
     setup_logs(dirs)
     log.debug(f'Starting {APP_NAME}')
+    # setup config manager
+    cfg = ConfigManager(dirs)
     # start the gui
-    app = AppRoot(APP_NAME, dirs)
+    app = AppRoot(APP_NAME, dirs, cfg)
     app.mainloop()

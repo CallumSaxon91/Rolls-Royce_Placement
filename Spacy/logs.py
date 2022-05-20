@@ -4,10 +4,7 @@ from pathlib import Path
 from datetime import datetime, timedelta
 
 from utils import open_new_file
-
-
-FILENAME_FORMAT_PREFIX = '%Y-%m-%d %H-%M-%S'
-MAX_LOGFILE_AGE_DAYS = 7
+from constants import FILENAME_FORMAT_PREFIX, MAX_LOGFILE_AGE_DAYS
 
 log = logging.getLogger(__name__)
 

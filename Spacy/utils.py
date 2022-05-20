@@ -1,11 +1,15 @@
+import os
+import csv
 import logging
 from pathlib import Path
 from datetime import datetime
 from typing import TextIO
 from itertools import count
+from PIL import Image, ImageTk
 
+from exceptions import NoImageFound
+from constants import FILENAME_FORMAT_PREFIX, ASSETS_DIR
 
-FILENAME_FORMAT_PREFIX = '%Y-%m-%d %H-%M-%S'
 
 log = logging.getLogger(__name__)
 
@@ -18,7 +22,7 @@ def validate_dirs(dirs) -> None:
     # directories with the project files
     for folder_name in ('output', 'assets'):
         Path(
-            __file__.removesuffix(f'{__name__}.py') + folder_name
+            f'{os.path.dirname(__file__)}\{folder_name}'
         ).mkdir(parents=True, exist_ok=True)
 
 def open_new_file(dir:str) -> TextIO:
@@ -29,3 +33,24 @@ def open_new_file(dir:str) -> TextIO:
             return (Path(f'{dir}/{filename}').open('x', encoding='utf-8'))
         except FileExistsError:
             continue
+        
+def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
+    """returns PhotoImage object obtained from file path"""
+    fp = f'{ASSETS_DIR}\{filename}'
+    if not os.path.exists(fp):
+        log.error(f'could not find image at fp: {fp}')
+        raise NoImageFound
+    im = Image.open(fp)
+    im = im.resize(size, Image.ANTIALIAS)
+    return ImageTk.PhotoImage(im)
+
+def export_to_csv(data:list[list], fp:str):
+    """Export 2d array to list"""
+    with open(fp, 'w', newline='') as file:
+        writer = csv.writer(file, delimiter=',')
+        writer.writerows(data)
+
+def import_from_csv(fp:str) -> list:
+    with open(fp, 'r', newline='') as file:
+        rows = csv.read(file, delimiter=',')
+    return rows

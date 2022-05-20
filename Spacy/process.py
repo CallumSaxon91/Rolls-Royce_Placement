@@ -1,14 +1,15 @@
-import spacy
+import spacy  # takes a long time
 import requests
 import logging
 import numpy as np
 from bs4 import BeautifulSoup
+from io import TextIOWrapper
 
 from exceptions import NotWikiPage
 
 
 log = logging.getLogger(__name__)
-npl = spacy.load('en_core_web_sm')
+npl = spacy.load('en_core_web_sm')  # also takes a long time
 
 def _get_soup(url:str) -> BeautifulSoup:
     """Get soup object"""
@@ -46,5 +47,13 @@ def parse_string(string:str):
     """
     doc = npl(string)
     result = np.array([[t.text, t.ent_type_, t.pos_] for t in doc])
-    result[np.where(result=='')] = 'No Category'
+    result[np.where(result=='')] = 'not an entity'
     return result.tolist()
+
+def parse_from_file(file:TextIOWrapper):
+    content = file.readlines()
+    if any((line.startswith('https://') for line in content)):
+        data = get_data_from_url(content[0])  # only gets first url TODO: complete this
+        return parse_string(data['content'])
+    else:
+        return parse_string(''.join(content))
