@@ -11,7 +11,7 @@ defaults = {
     'settings': {
         'auto_save': 'no',
         'auto_save_path': str(OUTPUT_DIR),
-        'quick_search': 'no'
+        'default_url': 'https://en.wikipedia.org/wiki/'
     },
     'entities': {
         'PEOPLE': 'People, including fictional characters.',
@@ -63,7 +63,7 @@ class ConfigManager(ConfigParser):
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
-        self.validate(True)
+        self.validate()
         self.read(self.fp)
 
     def validate(self, force_restore:bool=False):

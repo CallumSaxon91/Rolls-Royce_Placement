@@ -60,32 +60,36 @@ class AddressBar(ttk.Frame):
         super().__init__(master, style='AddressBar.TFrame')
         self.settings = self.master.notebook.settings_tab
         self.search_term = tk.StringVar(
-            value='https://en.wikipedia.org/wiki/'
+            value=self.settings.default_url.get()
         )
+        # Search button
         self.search_btn = ttk.Button(
             self, text='Search', style='AddressBar.TButton',
             command=self.on_search_btn
         )
         self.search_btn.pack(side='left', fill='y', padx=5, pady=5)
+        # Search bar aka address bar
         self.search_bar = ttk.Entry(
             self, style='AddressBar.TEntry',
             textvariable=self.search_term
         )
         self.search_bar.pack(
-            side='left', fill='both',
-            expand=True, pady=5
+            side='left', fill='both', expand=True, pady=5
         )
         self.search_bar.bind('<Return>', self.on_search_btn)
+        # Progress bar
         self.progress_bar = ttk.Progressbar(
             orient='horizontal',
             mode='indeterminate',
         )
+        # Open file button
         self.file_btn = ImageButton(
             self, img_fn='file.png', img_size=(20, 18),
             command=self.on_file_btn
         )
         self.file_btn.pack(side='right', padx=5)
         sep = ttk.Separator(self, orient='vertical')
+        # Save file button
         sep.pack(side='right', before=self.file_btn, fill='y', pady=5)
         self.save_btn = ImageButton(
             self, img_fn='save.png', img_size=(20, 20),
@@ -94,6 +98,7 @@ class AddressBar(ttk.Frame):
         self.save_btn.pack(side='right', padx=5, before=sep)
 
     def on_file_btn(self):
+        """File button has been clicked"""
         m = messagebox.askokcancel(
             title='Open File',
             message = 'You can use a text file as input data to ' \
@@ -108,8 +113,10 @@ class AddressBar(ttk.Frame):
         self.search_term.set(fp)
 
     def on_save_btn(self):
+        """Save button has been clicked"""
         fp = filedialog.askdirectory(mustexist=True)
-        self.master.notebook.entities_frame.save(fp)
+        if not fp: return
+        self.master.notebook.results_tab.save(fp)
 
     def on_search_btn(self, event:tk.Event=None):
         def check_finished():
@@ -117,6 +124,8 @@ class AddressBar(ttk.Frame):
                 self.after(1000, check_finished)
                 return                
             self.populate_fields(self.data)
+            if self.settings.auto_save.get():
+                self.master.notebook.results_tab.save()
             
         search_thread = Thread(target=self.search)
         search_thread.daemon = True
@@ -153,11 +162,7 @@ class AddressBar(ttk.Frame):
         data = parse_string("".join(data['content']))
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
-        # output results to gui and save to file
-        if self.settings.quick_search.get():
-            self.populate_fields(data)
-        if self.settings.auto_save.get():
-            self.master.notebook.entities_frame.save()
+        # set flag to inform app that the thread has finished
         self.data = data
         self.in_search_state = False
 
@@ -216,6 +221,9 @@ class CustomTreeView(ttk.Frame):
     def get_children(self, *args, **kw):
         """retrieve data from treeview widget"""
         return self.tree.get_children(*args, **kw)
+    
+    def item(self, *args, **kw):
+        return self.tree.item(*args, **kw)
 
 
 class Notebook(ttk.Notebook):
@@ -357,9 +365,9 @@ class SettingsFrame(ttk.Frame):
             var=self.auto_save_path
         )
         self.auto_save_path_entry.pack(pack_info)
-        self.fast_search_checkbox = CheckBoxSetting(
-            frame, label='Enable fast search',
-            desc='Actively output results while searching (laggy)',
-            var=self.quick_search
+        self.default_url_entry = TextSetting(
+            frame, label='Default URL',
+            desc='URL in address bar on start up',
+            var=self.default_url
         )
-        self.fast_search_checkbox.pack(pack_info)
+        self.default_url_entry.pack(pack_info)
