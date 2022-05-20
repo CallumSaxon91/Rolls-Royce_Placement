@@ -56,23 +56,27 @@ theme_settings = {
                 "selectbackground": "DodgerBlue"
             }
         },
-        "CheckBox.TFrame": {
+        "SettingWidget.TFrame": {
             "configure": {
             }
         },
-        "CheckBox.TLabel": {
+        "SettingWidget.TLabel": {
             "configure": {
                 "font": "TkDefaultFont 10"
             }
         },
-        "CheckBoxDesc.TLabel": {
+        "SettingWidgetDesc.TLabel": {
             "configure": {
                 "font": "TkDefaultFont 9"
             }
         },
-        "CheckBox.TCheckbutton": {
+        "SettingWidget.TCheckbutton": {
             "configure": {
                 "focuscolor": "gray85"
+            }
+        },
+        "SettingWidget.TEntry": {
+            "configure": {
             }
         },
         "TNotebook.Tab": {
