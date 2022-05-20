@@ -99,6 +99,7 @@ class AddressBar(ttk.Frame):
 
     def on_file_btn(self):
         """File button has been clicked"""
+        raise NotImplementedError('This feature has not been implemented yet')
         m = messagebox.askokcancel(
             title='Open File',
             message = 'You can use a text file as input data to ' \
