@@ -220,10 +220,37 @@ class ResultsFrame(ttk.Frame):
 
 
 class LegendFrame(ttk.Frame):
-    """"""
+    """Contains widgets explaining spacy lingo stuff"""
     def __init__(self, master):
         super().__init__(master)
         self.master.add(self, text='Legend')
+        
+        entities = [
+            ('PEOPLE', 'People, including fictional characters.'),
+            ('NORP', 'Nationalities or religious or political groups.'),
+            ('FAC', 'Buildings, airports, highways, bridges, etc.'),
+            ('ORG', 'Companies, agencies, institutions, etc.'),
+            ('LOC', 'Non-GPE locations, mountain ranges, bodies of water.'),
+            ('PRODUCT', 'Objects, vehicles, foods, etc. (Not services.)'),
+            ('EVENT', 'Named hurricanes, battles, wars, sports events, etc.'),
+            ('WORK_OF_ART', 'Titles of books, songs, etc.'),
+            ('LAW', 'Named documents made into laws.'),
+            ('LANGUAGE', 'Any named language.'),
+            ('DATE', 'Absolute or relative dates or periods.'),
+            ('TIME', 'Times smaller than a day.'),
+            ('PERCENT', 'Percentage, including ”%“.'),
+            ('MONEY', 'Monetary values, including unit.'),
+            ('QUANTITY', 'Measurements, as of weight or distance.'),
+            ('ORDINAL', '“first”, “second”, etc.'),
+            ('CARDINAL', 'Numerals that do not fall under another type.')
+        ]
+        for i, entity in enumerate(entities):
+            ttk.Label(
+                self, text=entity[0]
+            ).grid(column=0, row=i)
+            ttk.Label(
+                self, text=entity[1]
+            ).grid(column=1, row=i)
 
 
 class SettingWidget(ttk.Frame):
@@ -253,6 +280,7 @@ class SettingWidget(ttk.Frame):
 
 
 class CheckBoxSetting(SettingWidget):
+    """Setting with a checkbox. Best used with a boolean setting."""
     def __init__(
             self, master, label:str, desc:str, var:tk.Variable, **kw
         ):
@@ -263,6 +291,7 @@ class CheckBoxSetting(SettingWidget):
 
 
 class TextSetting(SettingWidget):
+    """Setting with a text box. Best used with a string setting"""
     def __init__(
         self, master, label:str, desc:str, var:tk.Variable, **kw
         ):
@@ -274,7 +303,7 @@ class TextSetting(SettingWidget):
 
 
 class SettingsFrame(ttk.Frame):
-    """"""
+    """Contains setting controls"""
     def __init__(self, master):
         super().__init__(master)
         self.master.add(self, text='Settings')
