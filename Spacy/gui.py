@@ -29,9 +29,9 @@ class AppRoot(tk.Tk):
         )
         #self.resizable(False, False)
         # create and show controls
+        self.notebook = Notebook(self)
         self.addbar = AddressBar(self)
         self.addbar.pack(fill='x')
-        self.notebook = Notebook(self)
         self.notebook.pack(fill='both', expand=True)
         # setup style
         # style must be setup after creating the controls because some
@@ -53,8 +53,11 @@ class ImageButton(ttk.Button):
 
 class AddressBar(ttk.Frame):
     """Tkinter frame that contains controls used to lookup web url"""
+    in_search_state: bool = False
+    
     def __init__(self, master):
         super().__init__(master, style='AddressBar.TFrame')
+        self.settings = self.master.notebook.settings_frame
         self.search_term = tk.StringVar(
             value='https://en.wikipedia.org/wiki/'
         )
@@ -108,11 +111,19 @@ class AddressBar(ttk.Frame):
         self.master.notebook.entities_frame.save(fp)
 
     def on_search_btn(self, event:tk.Event=None):
+        def check_finished():
+            if self.in_search_state:
+                self.after(1000, check_finished)
+                return                
+            self.populate_fields(self.data)
+            
         search_thread = Thread(target=self.search)
         search_thread.daemon = True
         search_thread.start()
+        self.after(1000, check_finished)
 
     def search(self):
+        self.in_search_state = True
         url = self.search_term.get()
         log.debug(f'starting search for: {url}')
         # update gui to reflect searching in progress
@@ -139,13 +150,15 @@ class AddressBar(ttk.Frame):
             )
             return
         data = parse_string("".join(data['content']))
-        # output results to gui and save to file
-        self.populate_fields(data)
-        settings = self.master.notebook.settings_frame
-        if settings.auto_save.get():
-            self.master.notebook.entities_frame.save()
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
+        # output results to gui and save to file
+        if self.settings.quick_search.get():
+            self.populate_fields(data)
+        if self.settings.auto_save.get():
+            self.master.notebook.entities_frame.save()
+        self.data = data
+        self.in_search_state = False
 
     def update_gui_state(self, searching:bool):
         """Enables or disables addressbar widgets"""
@@ -270,7 +283,7 @@ class SettingWidget(ttk.Frame):
         self.var = var
         
     def on_update(self, *args):
-        cfg = self.master.master.master.cfg  # this is just bad
+        cfg = self.master.master.master.master.cfg  # this is just bad
         cfg.update('settings', self.var)
         try:
             cfg.update('settings', self.var)
@@ -330,7 +343,7 @@ class SettingsFrame(ttk.Frame):
         self.auto_save_path_entry.pack(pack_info)
         self.fast_search_checkbox = CheckBoxSetting(
             frame, label='Enable fast search',
-            desc='Actively output results while searching (slow)',
+            desc='Actively output results while searching (laggy)',
             var=self.quick_search
         )
         self.fast_search_checkbox.pack(pack_info)
