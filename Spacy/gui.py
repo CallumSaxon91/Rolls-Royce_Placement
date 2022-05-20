@@ -198,14 +198,14 @@ class ResultsFrame(ttk.Frame):
     def __init__(self, master):
         super().__init__(master)
         master.add(self, text='Results')
-        headings = ('words', 'category', 'type')
+        headings = ('words', 'entity type', 'word class')
         self.tree = ttk.Treeview(
             self, show='headings', columns=headings
         )
         self.tree.pack(side='left', fill='both', expand=True)
         for heading in headings:
             self.tree.column(heading, anchor='w')
-            self.tree.heading(heading, text=heading.capitalize())
+            self.tree.heading(heading, text=heading.title())
         scroller = ttk.Scrollbar(self, command=self.tree.yview)
         scroller.pack(side='right', fill='y')
         self.tree.config(yscrollcommand=scroller.set)
