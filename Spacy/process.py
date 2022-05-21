@@ -30,7 +30,7 @@ def get_data_from_url(url:str, searchfor:str='p') -> dict:
             content.append(text)
 
     data = {
-        'title': soup.find(id='firstHeader'),
+        'title': soup.find(id='firstHeading').contents[0],
         'content': content
     }
     return data
@@ -47,7 +47,7 @@ def parse_string(string:str):
     """
     doc = npl(string)
     result = np.array([[t.text, t.ent_type_, t.pos_] for t in doc])
-    result[np.where(result=='')] = 'not an entity'
+    result[np.where(result=='')] = 'N/A'
     return result.tolist()
 
 def parse_from_file(file:TextIOWrapper):
