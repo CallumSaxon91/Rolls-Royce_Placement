@@ -15,22 +15,28 @@ log = logging.getLogger(__name__)
 
 def validate_dirs(dirs) -> None:
     """Creates app directories if they don't already exist."""
-    log.info('validating app dirs')
-    # directories in the appdata dir
+    log.info('Validating app dirs')
+    # create directories in the appdata dir
     Path(dirs.user_config_dir).mkdir(parents=True, exist_ok=True)
     Path(dirs.user_log_dir).mkdir(parents=True, exist_ok=True)
-    # directories with the project files
+    # create directories with the project files
     for folder_name in ('output', 'assets'):
         Path(
             f'{os.path.dirname(__file__)}\{folder_name}'
         ).mkdir(parents=True, exist_ok=True)
 
-def open_new_file(dir:str) -> TextIO:
+def open_new_file(dir:str, ext:str='txt') -> TextIO:
+    """Create a new file with a unique filename"""
     timestamp = datetime.now().strftime(FILENAME_FORMAT_PREFIX)
-    filenames = (f'{timestamp}.txt' if i == 0 else f'{timestamp}_{i}.txt' for i in count())
+    filenames = (
+            f'{timestamp}.txt' if i == 0 else f'{timestamp}_{i}.{ext}' \
+            for i in count()
+        )
     for filename in filenames:
         try:
-            return (Path(f'{dir}/{filename}').open('x', encoding='utf-8'))
+            path = f'{dir}/{filename}'
+            log.debug(f'Creating file at {path}')
+            return (Path(path).open('x', encoding='utf-8'))
         except FileExistsError:
             continue
         
@@ -49,6 +55,7 @@ def export_to_csv(data:list[list], fp:str):
     with open(fp, 'w', newline='') as file:
         writer = csv.writer(file, delimiter=',')
         writer.writerows(data)
+    log.debug(f'Finished exporting data to csv file at {fp}')
 
 def import_from_csv(fp:str) -> list:
     with open(fp, 'r', newline='') as file:

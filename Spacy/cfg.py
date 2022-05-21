@@ -75,7 +75,7 @@ class ConfigManager(ConfigParser):
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
-        self.validate(True)
+        self.validate()  # pass True to restore defaults
         self.read(self.fp)
 
     def validate(self, force_restore:bool=False):

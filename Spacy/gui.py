@@ -17,7 +17,9 @@ log = logging.getLogger(__name__)
 
 
 class AppRoot(tk.Tk):
+    """Root of the application. Inherits from tkinter.Tk"""
     def __init__(self, app_name:str, dirs:AppDirs, cfg:ConfigManager):
+        log.debug('Initializing main GUI window')
         super().__init__()
         self.app_name = app_name
         self.dirs = dirs
@@ -38,10 +40,10 @@ class AppRoot(tk.Tk):
         # style must be setup after creating the controls because some
         # widgets can only be stylized after creation.
         self.style = Style(self)
-        log.debug('app root initialized')
 
 
 class ImageButton(ttk.Button):
+    """ttk Button with an image"""
     def __init__(
             self, master, img_fn:str, img_size:tuple[int, int], **kw
         ):
@@ -55,8 +57,9 @@ class ImageButton(ttk.Button):
 class AddressBar(ttk.Frame):
     """Tkinter frame that contains controls used to lookup web url"""
     in_search_state: bool = False
-    
+
     def __init__(self, master):
+        log.debug('Initializing address bar widget')
         super().__init__(master, style='AddressBar.TFrame')
         self.settings = self.master.notebook.settings_tab
         self.search_term = tk.StringVar(
@@ -100,14 +103,14 @@ class AddressBar(ttk.Frame):
     def on_file_btn(self):
         """File button has been clicked"""
         raise NotImplementedError('This feature has not been implemented yet')
-        m = messagebox.askokcancel(
+        ok = messagebox.askokcancel(
             title='Open File',
             message = 'You can use a text file as input data to ' \
                     'parse. The file can contain urls separated by ' \
                     ' a line break or a string of characters to be ' \
                     'parsed.'
         )
-        if not m: return
+        if not ok: return
         fp = filedialog.askopenfilename(
             filetypes=(('Text File', '*.txt'),)
         )
@@ -120,14 +123,15 @@ class AddressBar(ttk.Frame):
         self.master.notebook.results_tab.save(fp)
 
     def on_search_btn(self, event:tk.Event=None):
+        """Search button has been clicked"""
         def check_finished():
             if self.in_search_state:
                 self.after(1000, check_finished)
-                return                
+                return
             self.populate_fields(self.data)
             if self.settings.auto_save.get():
                 self.master.notebook.results_tab.save()
-            
+
         search_thread = Thread(target=self.search)
         search_thread.daemon = True
         search_thread.start()
@@ -141,7 +145,7 @@ class AddressBar(ttk.Frame):
         self.update_gui_state(searching=True)
         try:
             data = get_data_from_url(url)
-        except NotWikiPage:
+        except NotWikiPage:  # remove this exception to allow non-wikis
             log.error('cancelled search - entered url is invalid')
             self.update_gui_state(searching=False)
             messagebox.showerror(
@@ -151,7 +155,7 @@ class AddressBar(ttk.Frame):
             )
             return
         except RequestsConnectionError:
-            log.error("couldn't establish connection with url")
+            log.error(f"couldn't establish connection with {url}")
             self.update_gui_state(searching=False)
             messagebox.showerror(
                 title='Connection Error',
@@ -160,15 +164,19 @@ class AddressBar(ttk.Frame):
                         "try again."
             )
             return
+        # parse the data
+        title = data['title']
         data = parse_string("".join(data['content']))
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
         # set flag to inform app that the thread has finished
         self.data = data
         self.in_search_state = False
+        log.debug('Search complete')
 
     def update_gui_state(self, searching:bool):
         """Enables or disables addressbar widgets"""
+        log.debug(f'Updating address bar GUI. Disabled = {searching}')
         if searching:
             self.progress_bar.pack(self.search_bar.pack_info())
             self.progress_bar.start(5)
@@ -182,13 +190,14 @@ class AddressBar(ttk.Frame):
 
     def populate_fields(self, data:list[tuple]):
         """output results to gui"""
+        log.debug('Outputing parsed data')
         self.master.notebook.results_tab.populate_tree(data)
-        log.debug('populated gui fields')
 
 
 class CustomTreeView(ttk.Frame):
     """Tkinter ttk treeview with a scrollbar"""
     def __init__(self, master, headings, **kw):
+        log.debug(f'Creating custom treeview widget at {master}')
         super().__init__(master, **kw)
         # Create treeview widget
         self.tree = ttk.Treeview(
@@ -206,23 +215,23 @@ class CustomTreeView(ttk.Frame):
         scroller = ttk.Scrollbar(self, command=self.tree.yview)
         scroller.pack(side='right', fill='y')
         self.tree.config(yscrollcommand=scroller.set)
-        
-    def insert_by_row(self, content):
-        for i, item in enumerate(content):
+
+    def insert_by_row(self, content:list[list]):
+        for i, row in enumerate(content):
             tag = EVEN if i % 2 == 0 else ODD
-            self.tree.insert('', 'end', values=item, tags=(tag,))
-            
+            self.tree.insert('', 'end', values=row, tags=(tag,))
+
     def insert(self, *args, **kw):
         self.tree.insert(*args, **kw)
-        
+
     def delete(self, *args, **kw):
         """delete data from treeview widget"""
         self.tree.delete(*args, **kw)
-        
+
     def get_children(self, *args, **kw):
         """retrieve data from treeview widget"""
         return self.tree.get_children(*args, **kw)
-    
+
     def item(self, *args, **kw):
         return self.tree.item(*args, **kw)
 
@@ -230,20 +239,24 @@ class CustomTreeView(ttk.Frame):
 class Notebook(ttk.Notebook):
     """Tkinter frame that ouputs results from spacy"""
     def __init__(self, master:tk.Tk):
+        log.debug('Initializing notebook')
         super().__init__(master)
         # Create notebook tabs
         self.results_tab = ResultsFrame(self)
         self.legend_tab = LegendFrame(self)
         self.settings_tab = SettingsFrame(self)
+        self.help_tab = HelpFrame(self)
         # Register notebook tabs
         self.add(self.results_tab, text='Results')
         self.add(self.legend_tab, text='Legend')
         self.add(self.settings_tab, text='Settings')
+        self.add(self.help_tab, text='Help')
 
 
 class ResultsFrame(ttk.Frame):
     """Tkinter ttk Frame containing output for parsed data"""
     def __init__(self, master):
+        log.debug('Initializing results tab')
         super().__init__(master)
         # Create data tree for output
         self.tree = CustomTreeView(
@@ -258,12 +271,13 @@ class ResultsFrame(ttk.Frame):
 
     def save(self, fp:str=''):
         """Save output to csv file"""
+        log.debug('Exporting data to csv file')
         settings = self.master.settings_tab
         data = [
             self.tree.item(row)['values'] \
             for row in self.tree.get_children()
             ]
-        if not fp: 
+        if not fp:
             fp = settings.auto_save_path.get()
         fp += '/output.csv'
         export_to_csv(data, fp)
@@ -272,6 +286,7 @@ class ResultsFrame(ttk.Frame):
 class LegendFrame(ttk.Frame):
     """Contains widgets explaining spacy lingo stuff"""
     def __init__(self, master):
+        log.debug('Initializing legend tab')
         super().__init__(master)
         self.tree = CustomTreeView(
             self, headings=('entities', '', 'Part Of Speech', '')
@@ -298,6 +313,7 @@ class SettingWidget(ttk.Frame):
     def __init__(
         self, master, label:str, desc:str, var:tk.Variable, **kw
         ):
+        log.debug(f'Initializing setting widget at {master}')
         super().__init__(master, style='SettingWidget.TFrame', **kw)
         self.columnconfigure(0, weight=1)
         ttk.Label(
@@ -308,15 +324,16 @@ class SettingWidget(ttk.Frame):
         ).grid(column=0, columnspan=2, row=2, sticky='w')
         var.trace_add('write', self.on_update)
         self.var = var
-        
+
     def on_update(self, *args):
+        log.debug(f'Updating setting widget {self}')
         cfg = self.master.master.master.master.cfg  # this is just bad
         cfg.update('settings', self.var)
         try:
             cfg.update('settings', self.var)
         except AttributeError:
             print('failed update attribute error')
-            pass  # TODO: logging
+            # TODO: logging
 
 
 class CheckBoxSetting(SettingWidget):
@@ -336,7 +353,6 @@ class TextSetting(SettingWidget):
         self, master, label:str, desc:str, var:tk.Variable, **kw
         ):
         super().__init__(master, label, desc, var, **kw)
-        print(var, var.get())
         ttk.Entry(
             self, textvariable=var, style='SettingWidget.TEntry'
         ).grid(column=0, columnspan=2, row=1, sticky='we')
@@ -345,15 +361,19 @@ class TextSetting(SettingWidget):
 class SettingsFrame(ttk.Frame):
     """Contains setting controls"""
     def __init__(self, master):
+        log.debug('Initializing settings tab')
         super().__init__(master)
+        # Load settings
         cfg: ConfigManager = self.master.master.cfg
         for name, setting in cfg.create_settings_vars():
             setattr(self, name, setting)
+        # Setting widgets will be packed into this frame
         frame = ttk.Frame(self)
         frame.pack(side='top', anchor='w')
         pack_info = {
             'fill': 'x', 'anchor': 'w', 'padx': 10, 'pady': 10
         }
+        # Create setting widgets
         self.auto_save_checkbox = CheckBoxSetting(
             frame, label='Enable auto save',
             desc='Automatically save results to a file',
@@ -372,3 +392,17 @@ class SettingsFrame(ttk.Frame):
             var=self.default_url
         )
         self.default_url_entry.pack(pack_info)
+
+
+# WIP
+class HelpFrame(ttk.Frame):
+    """Tab containing helpful info on how to use the app"""
+    def __init__(self, master):
+        log.debug('Initializing help tab')
+        super().__init__(master)
+        test_btn = ttk.Button(
+            self, text='www.weblink.com', style='HyperLink.TButton',
+            cursor='hand2'
+        )
+        test_btn.pack()
+        ttk.Label(self, text='testtext').pack()
