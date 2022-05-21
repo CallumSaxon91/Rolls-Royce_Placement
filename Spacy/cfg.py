@@ -53,6 +53,18 @@ defaults = {
         'PUNCT': 'Punctuation',
         'SYM': 'Symbol',
         'X': 'Other'
+    },
+    'colours': {
+        'foreground': 'gray20',
+        'background': 'gray85',
+        'accentforeground': 'DodgerBlue3',
+        'accentbackground': 'gray80',
+        'selectforeground': 'gray100',
+        'selectbackground': 'DodgerBlue',
+        'buttonpadding': [5, 0, 5, 0],
+        'buttonrelief': 'groove',
+        "success": "forest green",
+        "relief": "flat"
     }
 }
 
@@ -63,7 +75,7 @@ class ConfigManager(ConfigParser):
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
-        self.validate()
+        self.validate(True)
         self.read(self.fp)
 
     def validate(self, force_restore:bool=False):

@@ -1,125 +1,27 @@
-from tkinter import ttk
+import json
+import logging
+from tkinter import ttk, font as tkfont
 
-# this should really be cleaned up soon
-theme_settings = {
-    "tk": {
-        "Text": {
-            "configure": {
-                "borderwidth": 1,
-                "relief": "groove"
-            }
-        }
-    },
-    "ttk": {
-        "TFrame": {
-            "configure": {
-            }
-        },
-        "TEntry": {
-            "configure": {
-                "padding": [3, 0, 3, 0],
-                "selectforeground": "white",
-                "selectbackground": "DodgerBlue"
-            }
-        },
-        "Horizontal.TProgressbar": {
-            "configure": {
-                "background": "forest green"
-            }
-        },
-        "AddressBar.TFrame": {
-            "configure": {
-            }
-        },
-        "AddressBar.TButton": {
-            "configure": {
-                "background": "gray85",
-                "focuscolor": "gray85",
-                "borderwidth": 2,
-                "relief": "groove",
-                "padding": [10, 0, 10, 0]
-            },
-            "map": {
-                "relief": [
-                    ["pressed", "sunken"],
-                ],
-                "background": [
-                    ["pressed", "gray80"]
-                ],
-                "focuscolor": [
-                    ["pressed", "gray80"]
-                ]
-            }
-        },
-        "AddressBarImg.TButton": {
-            "configure": {
-                "focuscolor": "gray85"
-            }
-        },
-        "AddressBar.TEntry": {
-            "configure": {
-            }
-        },
-        "SettingWidget.TFrame": {
-            "configure": {
-            }
-        },
-        "SettingWidget.TLabel": {
-            "configure": {
-                "font": "TkDefaultFont 10"
-            }
-        },
-        "SettingWidgetDesc.TLabel": {
-            "configure": {
-                "font": "TkDefaultFont 9"
-            }
-        },
-        "SettingWidget.TCheckbutton": {
-            "configure": {
-                "focuscolor": "gray85"
-            }
-        },
-        "SettingWidget.TEntry": {
-            "configure": {
-            }
-        },
-        "TNotebook.Tab": {
-            "configure": {
-                "background": "gray75",
-                "focuscolor": "gray85",
-                "padding": [7, 0, 7, 0]
-            },
-            "map": {
-                "background": [
-                    ["selected", "gray85"]
-                ]
-            }
-        },
-        "Treeview": {
-            "configure": {
-                "fieldbackground": "gray85",
-                "highlightthickness": 0,
-            },
-            "layout": [
-                [
-                    "treeview.treearea", 
-                    {"sticky": "nsew"}
-                ]
-            ]
-        },
-        "Treeview.Heading": {
-            "configure": {
-                "background": "gray75"
-            }
-        }
-    }
-}
+from constants import SPACY_DIR
+
+
+log = logging.getLogger(__name__)
 
 
 class Style(ttk.Style):
     def __init__(self, root):
         super().__init__(root)
-
+        colours = root.cfg['colours']
+        with open(f'{SPACY_DIR}\style.json', 'r') as file:
+            theme_settings = json.load(file)
+        default_font = tkfont.nametofont('TkDefaultFont')
+        default_font.configure(family='Segoe UI',  size=9)
+        theme_settings['tk'] = self._apply_colours(
+            theme_settings['tk'], colours
+        )
+        theme_settings['ttk'] = self._apply_colours(
+            theme_settings['ttk'], colours
+        )
         self.theme_create(
             themename='default_theme',
             parent='clam',
@@ -127,6 +29,7 @@ class Style(ttk.Style):
         )
         self.theme_use('default_theme')
 
+        # get all non-ttk widgets
         widgets = root.winfo_children()
         for widget in widgets:
             if widget.winfo_children():
@@ -137,3 +40,18 @@ class Style(ttk.Style):
             for widget_name, style in theme_settings['tk'].items():
                 if widget.__class__.__name__ == widget_name:
                     widget.config(**style['configure'])
+                    
+    def _apply_colours(self, theme_settings, colours):
+        for k1, v1 in theme_settings.items():
+            for k2, v2 in v1.items():
+                if k2 != 'configure':
+                    continue
+                for k3, v3 in v2.items():
+                    try:
+                        theme_settings[k1][k2][k3] = colours[v3]
+                    except KeyError:
+                        print(f'colours has no option: {v3}')
+                    except AttributeError:
+                        print(f'cant do integer', v3)
+                
+        return theme_settings

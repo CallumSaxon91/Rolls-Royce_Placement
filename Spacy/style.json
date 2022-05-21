@@ -1,0 +1,140 @@
+{
+    "tk": {
+        "Text": {
+            "configure": {
+                "borderwidth": 1,
+                "relief": "buttonrelief"
+            }
+        }
+    },
+    "ttk": {
+        "TFrame": {
+            "configure": {
+                "background": "background"
+            }
+        },
+        "TButton": {
+            "configure": {
+                "foreground": "foreground",
+                "background": "background",
+                "focuscolour": "background",
+                "relief": "buttonrelief",
+                "padding": "buttonpadding"
+            }
+        },
+        "TEntry": {
+            "configure": {
+                "padding": [3, 0, 3, 0],
+                "selectforeground": "selectforeground",
+                "selectbackground": "selectbackground"
+            }
+        },
+        "HyperLink.TButton": {
+            "configure": {
+                "foreground": "accentforeground",
+                "background": "background",
+                "focuscolor": "background",
+                "relief": "relief"
+            },
+            "map": {
+                "foreground": [
+                    ["active", "DodgerBlue2"]
+                ],
+                "font": [
+                    ["active", "TkDefaultFont 8 underline"]
+                ]
+            }
+        },
+        "Horizontal.TProgressbar": {
+            "configure": {
+                "background": "success"
+            }
+        },
+        "AddressBar.TFrame": {
+            "configure": {
+            }
+        },
+        "AddressBar.TButton": {
+            "configure": {
+                "background": "background",
+                "focuscolor": "background",
+                "borderwidth": 2,
+                "relief": "buttonrelief",
+                "padding": [10, 0, 10, 0]
+            },
+            "map": {
+                "relief": [
+                    ["pressed", "sunken"]
+                ],
+                "background": [
+                    ["pressed", "gray80"]
+                ],
+                "focuscolor": [
+                    ["pressed", "gray80"]
+                ]
+            }
+        },
+        "AddressBarImg.TButton": {
+            "configure": {
+                "focuscolor": "background",
+                "relief": "relief"
+            }
+        },
+        "AddressBar.TEntry": {
+            "configure": {
+            }
+        },
+        "SettingWidget.TFrame": {
+            "configure": {
+            }
+        },
+        "SettingWidget.TLabel": {
+            "configure": {
+                "font": "TkDefaultFont 10"
+            }
+        },
+        "SettingWidgetDesc.TLabel": {
+            "configure": {
+                "font": "TkDefaultFont 9"
+            }
+        },
+        "SettingWidget.TCheckbutton": {
+            "configure": {
+                "focuscolor": "background"
+            }
+        },
+        "SettingWidget.TEntry": {
+            "configure": {
+            }
+        },
+        "TNotebook.Tab": {
+            "configure": {
+                "background": "accentbackground",
+                "focuscolor": "background",
+                "padding": [7, 0, 7, 0]
+            },
+            "map": {
+                "background": [
+                    ["selected", "gray85"]
+                ]
+            }
+        },
+        "Treeview": {
+            "configure": {
+                "fieldbackground": "background",
+                "highlightthickness": 0
+            },
+            "layout": [
+                [
+                    "treeview.treearea", 
+                    {"sticky": "nsew"}
+                ]
+            ]
+        },
+        "Treeview.Heading": {
+            "configure": {
+                "background": "accentbackground"
+            }
+        }
+    }
+}
