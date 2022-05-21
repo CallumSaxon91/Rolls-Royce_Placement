@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 def _destroy_old_logs(dirs:AppDirs):
     for path in Path(dirs.user_log_dir).glob('*.txt'):
-        prefix = path.stem.split('_')[0]
+        prefix = path.stem.split('_')[1]
         try:
             log_date = datetime.strptime(prefix, FILENAME_FORMAT_PREFIX)
         except ValueError:
@@ -23,7 +23,7 @@ def _destroy_old_logs(dirs:AppDirs):
             path.unlink()
 
 def setup_logs(dirs:AppDirs) -> None:
-    file = open_new_file(dirs.user_log_dir)
+    file = open_new_file(dirs.user_log_dir, prefix='log')
     handler = logging.StreamHandler(file)
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(logging.Formatter('[%(asctime)s] %(name)s %(levelname)s: %(message)s'))
