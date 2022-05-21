@@ -25,12 +25,12 @@ def validate_dirs(dirs) -> None:
             f'{os.path.dirname(__file__)}\{folder_name}'
         ).mkdir(parents=True, exist_ok=True)
 
-def open_new_file(dir:str, ext:str='txt') -> TextIO:
+def open_new_file(dir:str, prefix:str='', ext:str='txt') -> TextIO:
     """Create a new file with a unique filename"""
     timestamp = datetime.now().strftime(FILENAME_FORMAT_PREFIX)
     filenames = (
-            f'{timestamp}.txt' if i == 0 else f'{timestamp}_{i}.{ext}' \
-            for i in count()
+            f'{prefix}_{timestamp}.txt' if i == 0 else \
+            f'{prefix}_{timestamp}_{i}.{ext}' for i in count()
         )
     for filename in filenames:
         try:
