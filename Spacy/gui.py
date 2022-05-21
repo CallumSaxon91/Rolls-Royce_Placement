@@ -165,7 +165,8 @@ class AddressBar(ttk.Frame):
             )
             return
         # parse the data
-        title = data['title']
+        title = f'Wikipedia - {data["title"]}'
+        self.master.notebook.results_tab.head_title.set(title)
         data = parse_string("".join(data['content']))
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
@@ -204,17 +205,20 @@ class CustomTreeView(ttk.Frame):
             self, columns=headings, show='headings',
             style='Treeview'
         )
-        self.tree.tag_configure(EVEN, background='gray85')
-        self.tree.tag_configure(ODD, background='gray80')
+        self.tree.tag_configure(EVEN, background='gray90')
+        self.tree.tag_configure(ODD, background='gray85')
         self.tree.pack(side='left', fill='both', expand=True)
         # Setup treeview headings
         for heading in headings:
             self.tree.column(heading, anchor='w', width=100)
             self.tree.heading(heading, text=heading.title())
         # Create scrollbar for treeview
-        scroller = ttk.Scrollbar(self, command=self.tree.yview)
-        scroller.pack(side='right', fill='y')
-        self.tree.config(yscrollcommand=scroller.set)
+        self.scroller = ttk.Scrollbar(master, command=self.tree.yview)
+        self.tree.config(yscrollcommand=self.scroller.set)
+        self.tree.bind('<Map>', self.pack_scroller)
+        
+    def pack_scroller(self, *args, **kw):
+        self.scroller.pack(side='right', fill='y', before=self)
 
     def insert_by_row(self, content:list[list]):
         for i, row in enumerate(content):
@@ -242,27 +246,51 @@ class Notebook(ttk.Notebook):
         log.debug('Initializing notebook')
         super().__init__(master)
         # Create notebook tabs
-        self.results_tab = ResultsFrame(self)
-        self.legend_tab = LegendFrame(self)
-        self.settings_tab = SettingsFrame(self)
-        self.help_tab = HelpFrame(self)
-        # Register notebook tabs
+        self.results_tab = ResultsTab(self)
+        self.legend_tab = LegendTab(self)
+        self.settings_tab = SettingsTab(self)
+        self.help_tab = HelpTab(self)
+        # Show notebook tabs
         self.add(self.results_tab, text='Results')
         self.add(self.legend_tab, text='Legend')
         self.add(self.settings_tab, text='Settings')
         self.add(self.help_tab, text='Help')
 
 
-class ResultsFrame(ttk.Frame):
+class NotebookTab(ttk.Frame):
+    def __init__(self, notebook, title:str, desc:str='', *args, **kw):
+        super().__init__(notebook, *args, **kw)
+        self.head_title = tk.StringVar(value=title)
+        self.head_desc = tk.StringVar(value=desc)
+        self.head = ttk.Frame(self, style='Head.TFrame')
+        self.head.pack(side='top', fill='x')
+        ttk.Label(
+            self.head, style='HeadTitle.TLabel',
+            textvariable=self.head_title
+        ).pack(side='left', padx=5, pady=5)
+        ttk.Label(
+            self.head, style='Head.TLabel',
+            textvariable=self.head_desc
+        ).pack(side='left', padx=(0, 5), pady=5)
+
+
+class ResultsTab(NotebookTab):
     """Tkinter ttk Frame containing output for parsed data"""
     def __init__(self, master):
         log.debug('Initializing results tab')
-        super().__init__(master)
+        super().__init__(master, title='Results')
+        # Create filter option
+        ttk.Button(
+            self.head, text='Filter Results', style='Head.TButton'
+        ).pack(side='right', padx=5, pady=5)
         # Create data tree for output
         self.tree = CustomTreeView(
             self, headings=('words', 'entity type', 'part of speech')
         )
-        self.tree.pack(fill='both', expand=True)
+        self.tree.pack(
+            side='bottom', fill='both', expand=True, before=self.head
+        )
+
 
     def populate_tree(self, content:list[list]):
         """Output data to data tree"""
@@ -283,15 +311,15 @@ class ResultsFrame(ttk.Frame):
         export_to_csv(data, fp)
 
 
-class LegendFrame(ttk.Frame):
+class LegendTab(NotebookTab):
     """Contains widgets explaining spacy lingo stuff"""
-    def __init__(self, master):
+    def __init__(self, master, title='Legend', desc=''):
         log.debug('Initializing legend tab')
-        super().__init__(master)
+        super().__init__(master, title='Legend',)
         self.tree = CustomTreeView(
-            self, headings=('entities', '', 'Part Of Speech', '')
+            self, headings=('entities', '', 'parts of speech', '')
         )
-        self.tree.pack(fill='both', expand=True)
+        self.tree.pack(side='bottom', fill='both', expand=True, before=self.head)
         # populate tree
         settings = master.master.cfg
         entities = settings['entities']
@@ -358,11 +386,11 @@ class TextSetting(SettingWidget):
         ).grid(column=0, columnspan=2, row=1, sticky='we')
 
 
-class SettingsFrame(ttk.Frame):
+class SettingsTab(NotebookTab):
     """Contains setting controls"""
     def __init__(self, master):
         log.debug('Initializing settings tab')
-        super().__init__(master)
+        super().__init__(master, title='Settings')
         # Load settings
         cfg: ConfigManager = self.master.master.cfg
         for name, setting in cfg.create_settings_vars():
@@ -395,11 +423,11 @@ class SettingsFrame(ttk.Frame):
 
 
 # WIP
-class HelpFrame(ttk.Frame):
+class HelpTab(NotebookTab):
     """Tab containing helpful info on how to use the app"""
     def __init__(self, master):
         log.debug('Initializing help tab')
-        super().__init__(master)
+        super().__init__(master, title='Help')
         test_btn = ttk.Button(
             self, text='www.weblink.com', style='HyperLink.TButton',
             cursor='hand2'

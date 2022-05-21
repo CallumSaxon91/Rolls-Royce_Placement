@@ -13,6 +13,34 @@
                 "background": "background"
             }
         },
+        "Head.TFrame": {
+            "configure": {
+                "foreground": "accentbackground",
+                "background": "accentbackground"
+            }
+        },
+        "Head.TLabel": {
+            "configure": {
+                "foreground": "foreground",
+                "background": "accentbackground",
+                "font": "TkDefaultFont 8 bold"
+            }
+        },
+        "HeadTitle.TLabel": {
+            "configure": {
+                "foreground": "foreground",
+                "background": "accentbackground",
+                "font": "TkDefaultFont 11 bold"
+            }
+        },
+        "Head.TButton": {
+            "configure": {
+                "foreground": "foreground",
+                "background": "background",
+                "padding": [5, 0, 5, 0],
+                "focuscolor": "background"
+            }
+        },
         "TButton": {
             "configure": {
                 "foreground": "foreground",
@@ -20,6 +48,17 @@
                 "focuscolour": "background",
                 "relief": "buttonrelief",
                 "padding": "buttonpadding"
+            },
+            "map": {
+                "relief": [
+                    ["pressed", "sunken"]
+                ],
+                "background": [
+                    ["pressed", "gray80"]
+                ],
+                "focuscolor": [
+                    ["pressed", "gray80"]
+                ]
             }
         },
         "TEntry": {
@@ -61,17 +100,6 @@
                 "borderwidth": 2,
                 "relief": "buttonrelief",
                 "padding": [10, 0, 10, 0]
-            },
-            "map": {
-                "relief": [
-                    ["pressed", "sunken"]
-                ],
-                "background": [
-                    ["pressed", "gray80"]
-                ],
-                "focuscolor": [
-                    ["pressed", "gray80"]
-                ]
             }
         },
         "AddressBarImg.TButton": {
@@ -107,15 +135,22 @@
             "configure": {
             }
         },
+        "TNotebook": {
+            "configure": {
+                "background": "background",
+                "lightcolor": "background",
+                "darkcolor": "background"
+            }
+        },
         "TNotebook.Tab": {
             "configure": {
-                "background": "accentbackground",
-                "focuscolor": "background",
+                "background": "background",
+                "focuscolor": "accentbackground",
                 "padding": [7, 0, 7, 0]
             },
             "map": {
                 "background": [
-                    ["selected", "gray85"]
+                    ["selected", "gray80"]
                 ]
             }
         },
