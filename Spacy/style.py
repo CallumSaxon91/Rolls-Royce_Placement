@@ -53,9 +53,9 @@ class Style(ttk.Style):
                     try:
                         theme_settings[k1][k2][k3] = colours[v3]
                     except KeyError:
-                        log.error(f'Colour config has no option: {v3}')
+                        log.warning(f'Colour config has no option: {v3}')
                     except AttributeError:
-                        log.error(
+                        log.warning(
                             'Colour config does not support ' \
                             f'non-string: {v3}'
                         )
