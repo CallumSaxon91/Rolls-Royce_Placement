@@ -13,6 +13,15 @@
                 "background": "background"
             }
         },
+        "TMenubutton": {
+            "configure": {
+                "foreground": "foreground",
+                "background": "background",
+                "focuscolor": "background",
+                "relief": "buttonrelief",
+                "padding": [5, 0, 5, 0]
+            }
+        },
         "Head.TFrame": {
             "configure": {
                 "foreground": "accentbackground",
@@ -144,6 +153,7 @@
         },
         "TNotebook.Tab": {
             "configure": {
+                "foreground": "foreground",
                 "background": "background",
                 "focuscolor": "accentbackground",
                 "padding": [7, 0, 7, 0]
@@ -168,6 +178,7 @@
         },
         "Treeview.Heading": {
             "configure": {
+                "foreground": "foreground",
                 "background": "accentbackground"
             }
         }
