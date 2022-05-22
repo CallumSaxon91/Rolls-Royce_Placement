@@ -65,6 +65,19 @@ defaults = {
         'buttonrelief': 'groove',
         "success": "forest green",
         "relief": "flat"
+    },
+    # experimental
+    'colours_dark': {
+        'foreground': 'gray90',
+        'background': 'gray30',
+        'accentforeground': 'DodgerBlue3',
+        'accentbackground': 'gray40',
+        'selectforeground': 'gray100',
+        'selectbackground': 'DodgerBlue',
+        'buttonpadding': [5, 0, 5, 0],
+        'buttonrelief': 'groove',
+        "success": "forest green",
+        "relief": "flat"
     }
 }
 
