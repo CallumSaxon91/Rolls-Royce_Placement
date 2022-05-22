@@ -30,4 +30,23 @@ QUANTITY: Measurements, as of weight or distance.
 ORDINAL: “first”, “second”, etc.
 CARDINAL: Numerals that do not fall under another type.
 
+## Future plans for Development
+From reading the NLP text extract here  we decided that we could make the following changes:
 
+(Expression Recognition) 
+
+From the text extract we decided we could incorporate a use of the days of the week enhancement, this would mean the spacy module would not only recognise numerical values as times, but also instead be able to recognise full expressions such as “the day after tomorrow” and days of the week such as “Friday” and “Monday”. This type of information would be useful to analyse when events are noted to have occurred throughout data sets and information. 
+
+ 
+
+(Data Trees for Analysis) 
+
+Something else we will be working on is the implementation of data trees, this additional feature will come in handy when identifying linked and more key significant events. This data tree will also allow us as a team to determine the effects of the linked events throughout topics and data sets. It will also be interesting to see how far the data tree will grow due to the predicted continuous data links and events. 
+
+ 
+
+Experimental Plans 
+
+(Wiki Explore) 
+
+An experimental implementation	we have been planning is the links to other wiki pages. This implementation is to see the effects of how far wiki pages go out of the topics range. Our prediction of this is that the wiki topics will eventually become out of context to the first search and a bundle of data will be collected. 
