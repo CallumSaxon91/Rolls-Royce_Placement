@@ -1,5 +1,6 @@
 import logging
 import os
+import numpy as np
 import tkinter as tk
 from threading import Thread
 from tkinter import filedialog, messagebox, ttk
@@ -197,9 +198,14 @@ class AddressBar(ttk.Frame):
 
 class CustomTreeView(ttk.Frame):
     """Tkinter ttk treeview with a scrollbar"""
+    data: list[list]
+    
     def __init__(self, master, headings, **kw):
         log.debug(f'Creating custom treeview widget at {master}')
         super().__init__(master, **kw)
+        # Create filter variables
+        self.ent_filter_var = tk.StringVar()
+        self.pos_filter_var = tk.StringVar()
         # Create treeview widget
         self.tree = ttk.Treeview(
             self, columns=headings, show='headings',
@@ -215,10 +221,39 @@ class CustomTreeView(ttk.Frame):
         # Create scrollbar for treeview
         self.scroller = ttk.Scrollbar(master, command=self.tree.yview)
         self.tree.config(yscrollcommand=self.scroller.set)
-        self.tree.bind('<Map>', self.pack_scroller)
+        self.tree.bind('<Map>', self._pack_scroller)
         
-    def pack_scroller(self, *args, **kw):
+        
+    def _pack_scroller(self, *args, **kw):
+        """pack treeview scrollbar"""
+        # this is necessary instead of packing out right so that the 
+        # scrollbar appears abover the tab header
         self.scroller.pack(side='right', fill='y', before=self)
+        
+    def create_filters(self, entities:list, pos:list):
+        self.ent_filters = [
+            'No Entity Filter', 'Entities Only', 'No Entities'
+        ]
+        self.ent_filters.extend(
+            [f'{e.upper()} Only' for e in entities]
+        )
+        self.pos_filters = ['No POS Filter', 'POS Only', 'No POS']
+        self.pos_filters.extend([f'{p.upper()} Only' for p in pos])
+        self.ent_filter_var.set(self.ent_filters[0])
+        self.pos_filter_var.set(self.pos_filters[0])
+    
+    def set_filter(self):
+        ent_filter = self.ent_filter_var.get()
+        pos_filter = self.pos_filter_var.get()
+        ent_filter = ent_filter.removesuffix(' Only')
+        pos_filter = pos_filter.removesuffix(' Only')
+        # USE NUMPY ARRAY - TODO when back from work
+        # https://www.geeksforgeeks.org/how-to-filter-two-dimensional-numpy-array-based-on-condition/
+        data = np.array([
+            self.tree.items(row)['values'] \
+            for row in self.tree.get_children()
+        ])
+        self.insert_by_row(data)
 
     def insert_by_row(self, content:list[list]):
         for i, row in enumerate(content):
@@ -238,6 +273,25 @@ class CustomTreeView(ttk.Frame):
 
     def item(self, *args, **kw):
         return self.tree.item(*args, **kw)
+    
+    
+class CustomMessageBox(tk.Toplevel):
+    def __init__(self):
+        super().__init__()
+        self.root: tk.Tk = self.nametowidget('')
+        # place toplevel above root and take controls
+        self.transient(self.root)
+        self.grab_set()
+        self.root.wait_window(self)
+        
+class FilterMessageBox(CustomMessageBox):
+    include: list = []
+    exclude: list = []
+    def __init__(self):
+        super().__init__()
+        entities = self.root.cfg['entities']
+        pos = self.root.cfg['POS_tags']
+        self.include.extend()
 
 
 class Notebook(ttk.Notebook):
@@ -279,11 +333,10 @@ class ResultsTab(NotebookTab):
     def __init__(self, master):
         log.debug('Initializing results tab')
         super().__init__(master, title='Results')
-        # Create filter option
         ttk.Button(
-            self.head, text='Filter Results', style='Head.TButton'
+            self.head, text='Filter Results', style='Head.TButton',
+            command=self.show_filter_msgbox
         ).pack(side='right', padx=5, pady=5)
-        # Create data tree for output
         self.tree = CustomTreeView(
             self, headings=('words', 'entity type', 'part of speech')
         )
@@ -291,6 +344,9 @@ class ResultsTab(NotebookTab):
             side='bottom', fill='both', expand=True, before=self.head
         )
 
+    def show_filter_msgbox(self):
+        msgbox = CustomMessageBox()
+        msgbox.mainloop()
 
     def populate_tree(self, content:list[list]):
         """Output data to data tree"""
