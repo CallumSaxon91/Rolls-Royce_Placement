@@ -46,12 +46,13 @@ class AppRoot(tk.Tk):
 class ImageButton(ttk.Button):
     """ttk Button with an image"""
     def __init__(
-            self, master, img_fn:str, img_size:tuple[int, int], **kw
+            self, master, img_fn:str, img_size:tuple[int, int], 
+            style:str='TButton', **kw
         ):
         self.img = image(img_fn, img_size)
         super().__init__(
             master, image=self.img, cursor='hand2',
-            style='AddressBarImg.TButton', **kw
+            style=style, **kw
         )
 
 
@@ -288,7 +289,10 @@ class CustomMessageBox(tk.Toplevel):
         self.root: AppRoot = self.nametowidget('')
         # configure toplevel widget geometry
         w, h = 400, 250
-        self.geometry(f'{w}x{h}')
+        x, y = self.root.winfo_x(), self.root.winfo_y()
+        x += int((self.root.winfo_width() / 2) - w / 2)
+        y += int((self.root.winfo_height() / 2) - h / 2)
+        self.geometry(f'{w}x{h}+{x}+{y}')
     
     def take_controls(self):
         # place toplevel above root and take controls
@@ -298,12 +302,8 @@ class CustomMessageBox(tk.Toplevel):
 
 
 class FilterMessageBox(CustomMessageBox):
-    def __init__(self):
+    def __init__(self, data):
         super().__init__()
-        entities = self.root.cfg['entities']
-        pos = self.root.cfg['POS_tags']
-        data = list(entities).copy()
-        data.extend(pos)
         # Create widgets
         headings = ('include', 'exclude')
         self.tree = CustomTreeView(
@@ -312,30 +312,51 @@ class FilterMessageBox(CustomMessageBox):
         )
         self.tree.pack(fill='both', expand=True)
         # Populate treeview
-        data = [[i.upper(), ''] for i in data]
         self.tree.insert_by_row(data)
         # Move button
         frame = ttk.Frame(self, style='Head.TFrame')
         frame.pack(side='bottom', fill='x')
         ttk.Button(
             self, text='Move', style='Head.TButton',
-            command=self.on_swap
+            command=self.on_move
         ).pack(side='left', padx=5, pady=5)
         ttk.Button(
             self, text='Move All', style='Head.TButton',
-            command=None
+            command=self.on_move_all
         ).pack(side='left', pady=5)
         ttk.Button(
             self, text='Move All Others', style='Head.TButton',
-            command=None
+            command=self.on_move_others
         ).pack(side='left', padx=5, pady=5)
-        
-    def on_swap(self):
-        """Swap the selected row"""
+
+    def on_move(self):
         tree = self.tree.tree
         # Find the selected row index
         focus = tree.focus()
+        if not focus: return
         index = tree.index(focus)
+        self.swap(focus, index)
+
+    def on_move_all(self):
+        tree = self.tree.tree
+        for item in tree.get_children():
+            index = tree.index(item)
+            self.swap(item, index)
+
+    def on_move_others(self):
+        tree = self.tree.tree
+        # Find the selected row index
+        focus = tree.focus()
+        if not focus: return
+        for item in tree.get_children():
+            if item == focus:
+                continue
+            index = tree.index(item)
+            self.swap(item, index)
+        
+    def swap(self, focus, index):
+        """Swap the selected row"""
+        tree = self.tree.tree
         # Reverse the items in the row
         selected = tree.item(focus)['values']
         selected.reverse()
@@ -390,11 +411,19 @@ class NotebookTab(ttk.Frame):
 
 class ResultsTab(NotebookTab):
     """Tkinter ttk Frame containing output for parsed data"""
+    include_filter: list = []
+    exclude_filter: list = []
+
     def __init__(self, master):
         log.debug('Initializing results tab')
         super().__init__(master, title='Results')
-        ttk.Button(
-            self.head, text='Filter Results', style='Head.TButton',
+        self.root = master.master
+        self.include_filter.extend(list(self.root.cfg['entities']))
+        self.include_filter.extend(list(self.root.cfg['POS_tags']))
+        ImageButton(
+            self.head, img_fn='filter.png', img_size=(18, 16),
+            text='Filter Results', style='Compound.TButton',
+            compound='right',
             command=self.show_filter_msgbox
         ).pack(side='right', padx=(5, 7), pady=5)
         self.tree = CustomTreeView(
@@ -406,13 +435,34 @@ class ResultsTab(NotebookTab):
         )
 
     def show_filter_msgbox(self):
-        msgbox = FilterMessageBox()
+        # zip wouldnt work? returned empty list?
+        data = []
+        for n, i in enumerate(self.include_filter):
+            try:
+                data.append([i, self.exclude_filter[n]])
+            except IndexError:
+                data.append([i, ''])
+        # Not happy with constructing the msgbox every time,
+        # however the work around is painful and time consuming.
+        # TODO: see above
+        msgbox = FilterMessageBox(data=data)
         msgbox.take_controls()
-        
+
     def update_filter(self, data:list[list]):
-        include, exclude = data[0], data[1]
-        print('including:', include)
-        print('excluding', exclude)
+        self.include_filter = data[0]
+        self.exclude_filter = data[1]
+        tree = self.tree.tree
+        data = []
+        for item in tree.get_children():
+            item = tree.item(item)['values']
+            item = [str(i) for i in item]
+            if any(i.lower() in self.exclude_filter for i in item):
+                print('excluding', item)
+                continue
+            print('including', item)
+            data.append(item)
+        if data == []: return
+        self.populate_tree(tree)
 
     def populate_tree(self, content:list[list]):
         """Output data to data tree"""

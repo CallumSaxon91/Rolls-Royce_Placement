@@ -50,6 +50,14 @@
                 "focuscolor": "background"
             }
         },
+        "Compound.TButton": {
+            "configure": {
+                "foreground": "foreground",
+                "background": "background",
+                "padding": [5, 0, 3, 0],
+                "focuscolor": "background"
+            }
+        },
         "TButton": {
             "configure": {
                 "foreground": "foreground",
