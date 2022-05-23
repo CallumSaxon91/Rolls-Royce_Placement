@@ -261,6 +261,7 @@ class CustomTreeView(ttk.Frame):
             tag = EVEN if i % 2 == 0 else ODD
             self.tree.insert('', 'end', values=row, tags=(tag,))
 
+
     def insert(self, *args, **kw):
         self.tree.insert(*args, **kw)
 
@@ -435,7 +436,7 @@ class ResultsTab(NotebookTab):
         )
 
     def show_filter_msgbox(self):
-        # zip wouldnt work? returned empty list?
+        # zip wouldnt work? returned empty list? Doing this instead.
         data = []
         for n, i in enumerate(self.include_filter):
             try:
@@ -462,7 +463,7 @@ class ResultsTab(NotebookTab):
             print('including', item)
             data.append(item)
         if data == []: return
-        self.populate_tree(tree)
+        self.populate_tree(data)
 
     def populate_tree(self, content:list[list]):
         """Output data to data tree"""
