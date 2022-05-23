@@ -56,7 +56,6 @@
                 "background": "background",
                 "focuscolour": "background",
                 "relief": "buttonrelief",
-                "padding": [5, 0, 5, 0],
                 "anchor": "center"
             },
             "map": {
