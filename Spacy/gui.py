@@ -200,7 +200,7 @@ class CustomTreeView(ttk.Frame):
     """Tkinter ttk treeview with a scrollbar"""
     data: list[list]
     
-    def __init__(self, master, headings, **kw):
+    def __init__(self, master, headings, style='Treeview', anchor:str='w', **kw):
         log.debug(f'Creating custom treeview widget at {master}')
         super().__init__(master, **kw)
         # Create filter variables
@@ -209,14 +209,14 @@ class CustomTreeView(ttk.Frame):
         # Create treeview widget
         self.tree = ttk.Treeview(
             self, columns=headings, show='headings',
-            style='Treeview'
+            style=style
         )
         self.tree.tag_configure(EVEN, background='gray90')
         self.tree.tag_configure(ODD, background='gray85')
         self.tree.pack(side='left', fill='both', expand=True)
         # Setup treeview headings
         for heading in headings:
-            self.tree.column(heading, anchor='w', width=100)
+            self.tree.column(heading, anchor=anchor, width=100)
             self.tree.heading(heading, text=heading.title())
         # Create scrollbar for treeview
         self.scroller = ttk.Scrollbar(master, command=self.tree.yview)
@@ -274,24 +274,82 @@ class CustomTreeView(ttk.Frame):
     def item(self, *args, **kw):
         return self.tree.item(*args, **kw)
     
+    def tag(self, index:int) -> str:
+        """
+            Returns a str 'even' or 'odd' depending on if the provided 
+            index is divisible by 2
+        """
+        return EVEN if index % 2 == 0 else ODD
+    
     
 class CustomMessageBox(tk.Toplevel):
-    def __init__(self):
-        super().__init__()
-        self.root: tk.Tk = self.nametowidget('')
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.root: AppRoot = self.nametowidget('')
+        # configure toplevel widget geometry
+        w, h = 350, 300
+        x, y = self.root.winfo_x(), self.root.winfo_y()
+        x += int((self.root.winfo_width() / 2) - w / 2)
+        y += int((self.root.winfo_height() / 2) - h / 2)
+        self.geometry(f'{w}x{h}+{x}+{y}')
+        # # disabled title bar
+        # self.overrideredirect(True)
+        # self.lift(self.root)
+    
+    def take_controls(self):
         # place toplevel above root and take controls
         self.transient(self.root)
         self.grab_set()
         self.root.wait_window(self)
-        
+
+
 class FilterMessageBox(CustomMessageBox):
-    include: list = []
-    exclude: list = []
     def __init__(self):
         super().__init__()
         entities = self.root.cfg['entities']
         pos = self.root.cfg['POS_tags']
-        self.include.extend()
+        data = list(entities).copy()
+        data.extend(pos)
+        # Create widgets
+        headings = ('include', 'exclude')
+        self.tree = CustomTreeView(
+            self, headings, anchor='center',
+            style='Selectable.Treeview'
+        )
+        self.tree.pack(fill='both', expand=True)
+        # Populate treeview
+        data = [[i.upper(), ''] for i in data]
+        self.tree.insert_by_row(data)
+        # Move button
+        frame = ttk.Frame(self, style='Head.TFrame')
+        frame.pack(side='bottom', fill='x')
+        ttk.Button(
+            self, text='<- Swap ->', style='Head.TButton',
+            command=self.on_swap
+        ).pack(padx=5, pady=5)
+        
+    def on_swap(self):
+        """Swap the selected row"""
+        tree = self.tree.tree
+        # Find the selected row index
+        focus = tree.focus()
+        index = tree.index(focus)
+        # Reverse the items in the row
+        selected = tree.item(focus)['values']
+        selected.reverse()
+        # Replace old row with new row
+        tree.delete(focus)
+        tree.insert(
+            '', index=index, values=selected, 
+            tags=(self.tree.tag(index),)
+        )
+        # Update filter
+        data = [
+            self.tree.item(row)['values'] \
+            for row in self.tree.get_children()
+        ]
+        data = tuple(zip(*data))
+        self.root.notebook.results_tab.update_filter(data)
 
 
 class Notebook(ttk.Notebook):
@@ -338,15 +396,22 @@ class ResultsTab(NotebookTab):
             command=self.show_filter_msgbox
         ).pack(side='right', padx=5, pady=5)
         self.tree = CustomTreeView(
-            self, headings=('words', 'entity type', 'part of speech')
+            self, headings=('words', 'entity type', 'part of speech'),
+            style='Selectable.Treeview'
         )
         self.tree.pack(
             side='bottom', fill='both', expand=True, before=self.head
         )
 
     def show_filter_msgbox(self):
-        msgbox = CustomMessageBox()
+        msgbox = FilterMessageBox()
+        msgbox.take_controls()
         msgbox.mainloop()
+        
+    def update_filter(self, data:list[list]):
+        include, exclude = data[0], data[1]
+        print('including:', include)
+        print('excluding', exclude)
 
     def populate_tree(self, content:list[list]):
         """Output data to data tree"""
