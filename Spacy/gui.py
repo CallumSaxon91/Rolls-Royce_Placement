@@ -394,7 +394,7 @@ class ResultsTab(NotebookTab):
         ttk.Button(
             self.head, text='Filter Results', style='Head.TButton',
             command=self.show_filter_msgbox
-        ).pack(side='right', padx=5, pady=5)
+        ).pack(side='right', padx=(5, 7), pady=5)
         self.tree = CustomTreeView(
             self, headings=('words', 'entity type', 'part of speech'),
             style='Selectable.Treeview'
