@@ -287,14 +287,8 @@ class CustomMessageBox(tk.Toplevel):
         super().__init__(*args, **kw)
         self.root: AppRoot = self.nametowidget('')
         # configure toplevel widget geometry
-        w, h = 350, 300
-        x, y = self.root.winfo_x(), self.root.winfo_y()
-        x += int((self.root.winfo_width() / 2) - w / 2)
-        y += int((self.root.winfo_height() / 2) - h / 2)
-        self.geometry(f'{w}x{h}+{x}+{y}')
-        # # disabled title bar
-        # self.overrideredirect(True)
-        # self.lift(self.root)
+        w, h = 400, 250
+        self.geometry(f'{w}x{h}')
     
     def take_controls(self):
         # place toplevel above root and take controls
@@ -324,9 +318,17 @@ class FilterMessageBox(CustomMessageBox):
         frame = ttk.Frame(self, style='Head.TFrame')
         frame.pack(side='bottom', fill='x')
         ttk.Button(
-            self, text='<- Swap ->', style='Head.TButton',
+            self, text='Move', style='Head.TButton',
             command=self.on_swap
-        ).pack(padx=5, pady=5)
+        ).pack(side='left', padx=5, pady=5)
+        ttk.Button(
+            self, text='Move All', style='Head.TButton',
+            command=None
+        ).pack(side='left', pady=5)
+        ttk.Button(
+            self, text='Move All Others', style='Head.TButton',
+            command=None
+        ).pack(side='left', padx=5, pady=5)
         
     def on_swap(self):
         """Swap the selected row"""
@@ -406,7 +408,6 @@ class ResultsTab(NotebookTab):
     def show_filter_msgbox(self):
         msgbox = FilterMessageBox()
         msgbox.take_controls()
-        msgbox.mainloop()
         
     def update_filter(self, data:list[list]):
         include, exclude = data[0], data[1]
