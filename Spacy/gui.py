@@ -90,7 +90,7 @@ class AddressBar(ttk.Frame):
         # Open file button
         self.file_btn = ImageButton(
             self, img_fn='file.png', img_size=(20, 18),
-            command=self.on_file_btn
+            command=self.on_file_btn, style='AddressBarImg.TButton'
         )
         self.file_btn.pack(side='right', padx=5)
         sep = ttk.Separator(self, orient='vertical')
@@ -98,7 +98,7 @@ class AddressBar(ttk.Frame):
         sep.pack(side='right', before=self.file_btn, fill='y', pady=5)
         self.save_btn = ImageButton(
             self, img_fn='save.png', img_size=(20, 20),
-            command=self.on_save_btn
+            command=self.on_save_btn, style='AddressBarImg.TButton'
         )
         self.save_btn.pack(side='right', padx=5, before=sep)
 
@@ -199,14 +199,14 @@ class AddressBar(ttk.Frame):
 
 class CustomTreeView(ttk.Frame):
     """Tkinter ttk treeview with a scrollbar"""
-    data: list[list]
+    data: list[list, list]
+    # Filters
+    include: list = []
+    exclude: list = []
     
     def __init__(self, master, headings, style='Treeview', anchor:str='w', **kw):
         log.debug(f'Creating custom treeview widget at {master}')
         super().__init__(master, **kw)
-        # Create filter variables
-        self.ent_filter_var = tk.StringVar()
-        self.pos_filter_var = tk.StringVar()
         # Create treeview widget
         self.tree = ttk.Treeview(
             self, columns=headings, show='headings',
@@ -224,32 +224,28 @@ class CustomTreeView(ttk.Frame):
         self.tree.config(yscrollcommand=self.scroller.set)
         self.tree.bind('<Map>', self._pack_scroller)
         
-        
     def _pack_scroller(self, *args, **kw):
         """pack treeview scrollbar"""
         # this is necessary instead of packing out right so that the 
         # scrollbar appears abover the tab header
         self.scroller.pack(side='right', fill='y', before=self)
         
-    def create_filters(self, entities:list, pos:list):
-        self.ent_filters = [
-            'No Entity Filter', 'Entities Only', 'No Entities'
-        ]
-        self.ent_filters.extend(
-            [f'{e.upper()} Only' for e in entities]
-        )
-        self.pos_filters = ['No POS Filter', 'POS Only', 'No POS']
-        self.pos_filters.extend([f'{p.upper()} Only' for p in pos])
-        self.ent_filter_var.set(self.ent_filters[0])
-        self.pos_filter_var.set(self.pos_filters[0])
-    
+    def update_data(self, data:list[list, list]):
+        # Filter out user chosen data
+        self.data = self.filter(data)
+        # Insert data into treeview
+        for i, row in enumerate(data):
+            tag = self.parity(i)  # get tag 'odd' or 'even'
+            self.tree.insert('', 'end', values=row, tags=(tag,))
+            
+    def filter(self, data:list[list, list]) -> list[list, list]:
+        for row in data:
+            for item in row:
+                if item in self.exclude:
+                    data.remove(row)
+        return data
+
     def set_filter(self):
-        ent_filter = self.ent_filter_var.get()
-        pos_filter = self.pos_filter_var.get()
-        ent_filter = ent_filter.removesuffix(' Only')
-        pos_filter = pos_filter.removesuffix(' Only')
-        # USE NUMPY ARRAY - TODO when back from work
-        # https://www.geeksforgeeks.org/how-to-filter-two-dimensional-numpy-array-based-on-condition/
         data = np.array([
             self.tree.items(row)['values'] \
             for row in self.tree.get_children()
@@ -260,7 +256,6 @@ class CustomTreeView(ttk.Frame):
         for i, row in enumerate(content):
             tag = EVEN if i % 2 == 0 else ODD
             self.tree.insert('', 'end', values=row, tags=(tag,))
-
 
     def insert(self, *args, **kw):
         self.tree.insert(*args, **kw)
@@ -276,12 +271,12 @@ class CustomTreeView(ttk.Frame):
     def item(self, *args, **kw):
         return self.tree.item(*args, **kw)
     
-    def tag(self, index:int) -> str:
+    def parity(self, integer:int) -> str:
         """
-            Returns a str 'even' or 'odd' depending on if the provided 
-            index is divisible by 2
+            Returns a str 'even' or 'odd' depending on if the 
+            provided integer is divisible by 2
         """
-        return EVEN if index % 2 == 0 else ODD
+        return EVEN if integer % 2 == 0 else ODD
     
     
 class CustomMessageBox(tk.Toplevel):
@@ -468,7 +463,7 @@ class ResultsTab(NotebookTab):
     def populate_tree(self, content:list[list]):
         """Output data to data tree"""
         self.tree.delete(*self.tree.get_children())
-        self.tree.insert_by_row(content)
+        self.tree.update_data(data=content)
 
     def save(self, fp:str=''):
         """Save output to csv file"""
