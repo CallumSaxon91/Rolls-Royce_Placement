@@ -194,12 +194,15 @@ class AddressBar(ttk.Frame):
     def populate_fields(self, data:list[tuple]):
         """output results to gui"""
         log.debug('Outputing parsed data')
-        self.master.notebook.results_tab.populate_tree(data)
+        results_tab = self.master.notebook.results_tab
+        results_tab.update_tree(data)
+        results_tab.tree.unfiltered_data = data
 
 
 class CustomTreeView(ttk.Frame):
     """Tkinter ttk treeview with a scrollbar"""
     data: list[list, list]
+    unfiltered_data: list[list, list]
     # Filters
     include: list = []
     exclude: list = []
@@ -208,17 +211,12 @@ class CustomTreeView(ttk.Frame):
         log.debug(f'Creating custom treeview widget at {master}')
         super().__init__(master, **kw)
         # Create treeview widget
-        self.tree = ttk.Treeview(
-            self, columns=headings, show='headings',
-            style=style
-        )
+        self.tree = ttk.Treeview(self, show='headings', style=style)
+        self.tree.pack(side='left', fill='both', expand=True)
+        # Configfure the treeview widget
         self.tree.tag_configure(EVEN, background='gray90')
         self.tree.tag_configure(ODD, background='gray85')
-        self.tree.pack(side='left', fill='both', expand=True)
-        # Setup treeview headings
-        for heading in headings:
-            self.tree.column(heading, anchor=anchor, width=100)
-            self.tree.heading(heading, text=heading.title())
+        self._set_headings(headings, anchor)
         # Create scrollbar for treeview
         self.scroller = ttk.Scrollbar(master, command=self.tree.yview)
         self.tree.config(yscrollcommand=self.scroller.set)
@@ -229,21 +227,45 @@ class CustomTreeView(ttk.Frame):
         # this is necessary instead of packing out right so that the 
         # scrollbar appears abover the tab header
         self.scroller.pack(side='right', fill='y', before=self)
-        
+
+    def _set_headings(self, headings:tuple, anchor:str):
+        """Update the treeview headings"""
+        self.tree.configure(columns=headings)
+        for heading in headings:
+            self.tree.column(heading, anchor=anchor, width=100)
+            self.tree.heading(heading, text=heading.title())
+
     def update_data(self, data:list[list, list]):
+        # Remove any previous data
+        self.tree.delete(*self.tree.get_children())
         # Filter out user chosen data
-        self.data = self.filter(data)
+        self.data = self.apply_filter(data)
         # Insert data into treeview
         for i, row in enumerate(data):
             tag = self.parity(i)  # get tag 'odd' or 'even'
             self.tree.insert('', 'end', values=row, tags=(tag,))
+            log.debug(f'Row added to treeview at index {i}: {row}')
             
-    def filter(self, data:list[list, list]) -> list[list, list]:
+    def apply_filter(self, data:list[list, list]) -> list[list, list]:
         for row in data:
             for item in row:
-                if item in self.exclude:
-                    data.remove(row)
+                if item not in self.exclude:
+                    continue
+                data.remove(row)
+                log.debug(
+                    f'Filtered out row {row} for containing {item}'
+                )
         return data
+
+    def update_filter(
+            self, include:list, exclude:list,
+            apply:bool=True
+        ):
+        log.debug('Updating treeview filter')
+        self.include = include
+        self.exclude = exclude
+        if apply:
+            self.update_data(self.data)
 
     def set_filter(self):
         data = np.array([
@@ -308,7 +330,7 @@ class FilterMessageBox(CustomMessageBox):
         )
         self.tree.pack(fill='both', expand=True)
         # Populate treeview
-        self.tree.insert_by_row(data)
+        self.tree.update_data(data)
         # Move button
         frame = ttk.Frame(self, style='Head.TFrame')
         frame.pack(side='bottom', fill='x')
@@ -360,7 +382,7 @@ class FilterMessageBox(CustomMessageBox):
         tree.delete(focus)
         tree.insert(
             '', index=index, values=selected, 
-            tags=(self.tree.tag(index),)
+            tags=(self.tree.parity(index),)
         )
         # Update filter
         data = [
@@ -368,7 +390,8 @@ class FilterMessageBox(CustomMessageBox):
             for row in self.tree.get_children()
         ]
         data = tuple(zip(*data))
-        self.root.notebook.results_tab.update_filter(data)
+        include, exclude = data[0], data[1]
+        self.root.notebook.results_tab.tree.update_filter(include, exclude)
 
 
 class Notebook(ttk.Notebook):
@@ -407,35 +430,33 @@ class NotebookTab(ttk.Frame):
 
 class ResultsTab(NotebookTab):
     """Tkinter ttk Frame containing output for parsed data"""
-    include_filter: list = []
-    exclude_filter: list = []
-
     def __init__(self, master):
         log.debug('Initializing results tab')
         super().__init__(master, title='Results')
         self.root = master.master
-        self.include_filter.extend(list(self.root.cfg['entities']))
-        self.include_filter.extend(list(self.root.cfg['POS_tags']))
+        # Create filter button widget
         ImageButton(
             self.head, img_fn='filter.png', img_size=(18, 16),
             text='Filter Results', style='Compound.TButton',
-            compound='right',
-            command=self.show_filter_msgbox
+            compound='right', command=self.show_filter_msgbox
         ).pack(side='right', padx=(5, 7), pady=5)
+        # Create treeview widget
         self.tree = CustomTreeView(
-            self, headings=('words', 'entity type', 'part of speech'),
-            style='Selectable.Treeview'
+            self, style='Selectable.Treeview', 
+            headings=('words', 'entity type', 'part of speech')
         )
         self.tree.pack(
             side='bottom', fill='both', expand=True, before=self.head
         )
+        self.tree.include = [ent.upper() for ent in self.root.cfg['entities']]
+        self.tree.include.extend([pos.upper() for pos in self.root.cfg['POS_tags']])
 
     def show_filter_msgbox(self):
         # zip wouldnt work? returned empty list? Doing this instead.
         data = []
-        for n, i in enumerate(self.include_filter):
+        for n, i in enumerate(self.tree.include):
             try:
-                data.append([i, self.exclude_filter[n]])
+                data.append([i, self.tree.exclude[n]])
             except IndexError:
                 data.append([i, ''])
         # Not happy with constructing the msgbox every time,
@@ -444,26 +465,9 @@ class ResultsTab(NotebookTab):
         msgbox = FilterMessageBox(data=data)
         msgbox.take_controls()
 
-    def update_filter(self, data:list[list]):
-        self.include_filter = data[0]
-        self.exclude_filter = data[1]
-        tree = self.tree.tree
-        data = []
-        for item in tree.get_children():
-            item = tree.item(item)['values']
-            item = [str(i) for i in item]
-            if any(i.lower() in self.exclude_filter for i in item):
-                print('excluding', item)
-                continue
-            print('including', item)
-            data.append(item)
-        if data == []: return
-        self.populate_tree(data)
-
-    def populate_tree(self, content:list[list]):
-        """Output data to data tree"""
-        self.tree.delete(*self.tree.get_children())
-        self.tree.update_data(data=content)
+    def update_tree(self, data:list[list]):
+        """Update treeview with new data"""
+        self.tree.update_data(data=data)
 
     def save(self, fp:str=''):
         """Save output to csv file"""
