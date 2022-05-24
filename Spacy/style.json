@@ -123,6 +123,14 @@
             "configure": {
                 "focuscolor": "background",
                 "relief": "relief"
+            },
+            "map": {
+                "relief": [
+                    ["pressed", "flat"]
+                ],
+                "background": [
+                    ["pressed", "gray85"]
+                ]
             }
         },
         "AddressBar.TEntry": {
