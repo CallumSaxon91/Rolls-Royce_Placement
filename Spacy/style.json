@@ -85,6 +85,11 @@
                 "selectbackground": "selectbackground"
             }
         },
+        "TCheckbutton": {
+            "configure": {
+                "focuscolor": "background"
+            }
+        },
         "HyperLink.TButton": {
             "configure": {
                 "foreground": "accentforeground",
