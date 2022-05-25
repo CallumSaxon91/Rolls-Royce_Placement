@@ -417,12 +417,16 @@ class FilterMessageBoxTab(NotebookTab):
         ).pack(side='left', padx=10, pady=10)
         ttk.Button(
             self, text='Move Not Selected', style='Head.TButton',
-            command=None
+            command=self.move_all_others
         ).pack(side='left', padx=(0, 10), pady=10)
         ttk.Button(
             self, text='Move All', style='Head.TButton',
             command=self.move_all
         ).pack(side='left', padx=(0, 10), pady=10)
+
+    def update_focus(self, item):
+        self.tree.focus(item)
+        self.tree.selection_set(item)
 
     def move(self, focus:str):
         values = self.tree.item(focus)['values']
@@ -430,19 +434,39 @@ class FilterMessageBoxTab(NotebookTab):
         values.reverse()
         index = self.tree.index(focus)
         self.tree.delete(focus)
-        new = self.tree.insert(
+        self.tree.insert(
             '', index, values=values, tags=(self.tree.parity(index),)
         )
-        # Set focus on the changed row
-        self.tree.focus(new)
-        self.tree.selection_set(new)
+        
+    # TODO: clean up repeating code from below.
 
     def move_selected(self):
-        self.move(self.tree.focus())
+        """Move the currently selected item"""
+        # Get values for reselecting item
+        focus = self.tree.focus()
+        index = self.tree.index(focus)
+        self.move(focus)
+        # Reselect item (because selected item was replaced)
+        self.update_focus(self.tree.get_children()[index])
 
     def move_all(self):
+        # Get values for reselecting item
+        focus = self.tree.focus()
+        index = self.tree.index(focus)
         for item in self.tree.get_children():
             self.move(item)
+        # Reselect item (because selected item was replaced)
+        self.update_focus(self.tree.get_children()[index])
+        
+    def move_all_others(self):
+        # Get values for reselecting item
+        focus = self.tree.focus()
+        index = self.tree.index(focus)
+        for item in self.tree.get_children():
+            if item == focus: continue
+            self.move(item)
+        # Reselect item (because selected item was replaced)
+        self.update_focus(self.tree.get_children()[index])
 
 
 class Notebook(ttk.Notebook):
