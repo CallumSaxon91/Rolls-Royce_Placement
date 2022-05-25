@@ -267,6 +267,7 @@ class CustomTreeView(ttk.Treeview):
         log.debug(f'Updating {self} contents')
         # Replace current data with new data
         self.delete(*current_data)
+        i = 0
         for i, row in enumerate(self.filtered_data):
             tag = self.parity(i)
             self.insert('', 'end', values=row, tags=(tag,))
@@ -274,7 +275,6 @@ class CustomTreeView(ttk.Treeview):
 
     def filter(self, data:list[list, list]) -> list[str]:
         """Returns filtered copy of the entered list"""
-        data = [up_list(row) for row in data]
         # Get list of items to filter out
         hidden = up_list(
             self.hidden_ents.copy() + self.hidden_pos.copy()
@@ -306,16 +306,19 @@ class CustomMessageBox(tk.Toplevel):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.root: AppRoot = self.nametowidget('')
-        # Configure toplevel widget geometry
-        x = self.root.winfo_x() + 20
-        y = self.root.winfo_y() + 20
-        self.geometry(f'+{x}+{y}')
     
     def take_controls(self):
         """
             Raises this toplevel above the root and hijacks controls
             from the root
         """
+        self.update_idletasks()
+        # Configure geometry
+        x = self.root.winfo_x() + int(self.root.winfo_width() / 2)
+        y = self.root.winfo_y() + int(self.root.winfo_height() / 2)
+        x -= int(self.winfo_width() / 2)
+        y -= int(self.winfo_height() / 2)
+        self.geometry(f'+{x}+{y}')
         # Grab controls
         self.transient(self.root)
         self.grab_set()
