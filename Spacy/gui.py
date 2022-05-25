@@ -11,7 +11,7 @@ from cfg import ConfigManager
 from exceptions import NotWikiPage
 from process import get_data_from_url, parse_string
 from style import Style
-from utils import image, export_to_csv, low_list
+from utils import image, export_to_csv, up_list
 from constants import EVEN, ODD
 
 log = logging.getLogger(__name__)
@@ -274,9 +274,9 @@ class CustomTreeView(ttk.Treeview):
 
     def filter(self, data:list[list, list]) -> list[str]:
         """Returns filtered copy of the entered list"""
-        data = low_list(data)
+        data = [up_list(row) for row in data]
         # Get list of items to filter out
-        hidden = low_list(
+        hidden = up_list(
             self.hidden_ents.copy() + self.hidden_pos.copy()
         )
         # Create new list without filtered items

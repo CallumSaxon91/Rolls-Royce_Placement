@@ -62,13 +62,13 @@ def import_from_csv(fp:str) -> list:
         rows = csv.read(file, delimiter=',')
     return rows
 
-def low_list(_list:list[str]) -> list[str]:
+def up_list(_list:list[str]) -> list[str]:
     """
         Returns a duplicate of the entered list except all contained
-        strings are lowercase.
+        strings are uppercase.
     """
     try:
-        new_list = [item.lower() for item in _list.copy()]
+        new_list = [item.upper() for item in _list.copy()]
         return new_list
     except TypeError:
         # Is this pythonic?
