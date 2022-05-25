@@ -61,3 +61,15 @@ def import_from_csv(fp:str) -> list:
     with open(fp, 'r', newline='') as file:
         rows = csv.read(file, delimiter=',')
     return rows
+
+def low_list(_list:list[str]) -> list[str]:
+    """
+        Returns a duplicate of the entered list except all contained
+        strings are lowercase.
+    """
+    try:
+        new_list = [item.lower() for item in _list.copy()]
+        return new_list
+    except TypeError:
+        # Is this pythonic?
+        raise TypeError('Items in list must be of type str')

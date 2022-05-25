@@ -11,7 +11,7 @@ from cfg import ConfigManager
 from exceptions import NotWikiPage
 from process import get_data_from_url, parse_string
 from style import Style
-from utils import image, export_to_csv
+from utils import image, export_to_csv, low_list
 from constants import EVEN, ODD
 
 log = logging.getLogger(__name__)
@@ -205,7 +205,7 @@ class CustomTreeView(ttk.Treeview):
         handling data.
     """
     # Data displayed in the tree
-    data: list[list, list]
+    data: list[list, list] = []
     filtered_data: list[list, list]
     # Filters
     hidden_ents: list = []
@@ -251,74 +251,82 @@ class CustomTreeView(ttk.Treeview):
         """Returns 'even' or 'odd' when given an integer"""
         return EVEN if integer % 2 == 0 else ODD
             
-    def update_tree(self, data:list[list, list]):
-        """Update the values in the treeview"""
-        old_data = self.get_children()
-        self.data = data
+    def update_tree(self, data:list[list, list]) -> None:
+        """Update the values in this treeview widget"""
+        current_data = self.get_children()
+        self.data = data  # unfiltered data
         self.filtered_data = self.filter(data)
         # If the data is identical to the previous data, don't bother
         # updating the widget with the new data.
-        if self.filtered_data == list(old_data):
+        if self.filtered_data == list(current_data):
             log.debug(
-                'Data has not changed while updating treeview ' /
-                f'{self}. Skipping population of treeview.'
+                f'Cancelled update for {self} because the new data ' \
+                'is identical to the current data.'
             )
-            return
-        log.debug(f'Populating treeview {self}')
-        # Insert new data into treeview widget
-        self.delete(*old_data)
+            return  # cancel the rest of the method
+        log.debug(f'Updating {self} contents')
+        # Replace current data with new data
+        self.delete(*current_data)
         for i, row in enumerate(self.filtered_data):
             tag = self.parity(i)
             self.insert('', 'end', values=row, tags=(tag,))
-        print(self.filtered_data in [self.item(r)['values'][1] for r in self.get_children()])
-        log.debug(
-            f'Finished populating treeview {self} with {i} widgets'
-        )
+        log.debug(f'Completed update for {self}, item count: {i}')
 
-    def filter(self, data:list[list, list]):
-        """Filter out data"""
-        hidden = self.hidden_ents.copy()
-        hidden.extend(self.hidden_pos)
-        for i, row in enumerate(data):
-            if any(item.upper() in hidden for item in row):
-                log.debug(
-                    f'Removing row {row} because it contains a ' \
-                    'filtered item'
-                )
-                data.pop(i)
-        return data
+    def filter(self, data:list[list, list]) -> list[str]:
+        """Returns filtered copy of the entered list"""
+        data = low_list(data)
+        # Get list of items to filter out
+        hidden = low_list(
+            self.hidden_ents.copy() + self.hidden_pos.copy()
+        )
+        # Create new list without filtered items
+        filtered = [
+            row for row in data \
+            if not any(item in hidden for item in row)
+        ]
+        log.debug(
+            f'Filtered data for {self}, before:[{len(data)}] '  \
+            f'after:[{len(filtered)}]'
+        )
+        return filtered
     
     def set_filter(
         self, hidden_ents:list, hidden_pos:list, update:bool
     ):
+        """Set this treeviews filters"""
         self.hidden_ents = hidden_ents
         self.hidden_pos = hidden_pos
+        log.debug(f'Set filters for {self}')
         if update:
-            print('updating tree')
             self.update_tree(data=self.data)
 
 
 class CustomMessageBox(tk.Toplevel):
+    """A custom popup messagebox"""
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.root: AppRoot = self.nametowidget('')
-        # # configure toplevel widget geometry
-        # w, h = 400, 250
-        x, y = self.root.winfo_x() + 20, self.root.winfo_y() + 20
-        # x += int((self.root.winfo_width() / 2) - w / 2)
-        # y += int((self.root.winfo_height() / 2) - h / 2)
+        # Configure toplevel widget geometry
+        x = self.root.winfo_x() + 20
+        y = self.root.winfo_y() + 20
         self.geometry(f'+{x}+{y}')
     
     def take_controls(self):
-        # place toplevel above root and take controls
+        """
+            Raises this toplevel above the root and hijacks controls
+            from the root
+        """
+        # Grab controls
         self.transient(self.root)
         self.grab_set()
+        # Pause root until toplevel is destroyed
         self.root.wait_window(self)
 
 
 class FilterMessageBox(CustomMessageBox):
     def __init__(self):
         super().__init__()
+        self.protocol('WM_DELETE_WINDOW', self.apply_changes)
         # Collect data
         self.results_tab = self.root.notebook.results_tab
         self.entities = self.root.cfg['entities']
@@ -352,15 +360,18 @@ class FilterMessageBox(CustomMessageBox):
         hidden = [i for i in hidden if i != '']
         return hidden
 
-    def apply_changes(self):
+    def apply_changes(self, close:bool=True):
         self.hidden_ents = self._get_hidden(self.ents_tab)
         self.hidden_pos = self._get_hidden(self.pos_tab)
         self.results_tab.tree.set_filter(
             self.hidden_ents, self.hidden_pos, update=True
         )
+        if close:
+            self.destroy()
         
     def _sort_data(self, data:list, hidden:list) -> list[list, list]:
         result = []
+        hidden = [item.lower() for item in hidden]
         for i in data:
             if i in hidden:
                 result.append(['', i.upper()])
@@ -409,9 +420,6 @@ class FilterMessageBoxTab(NotebookTab):
             self, text='Move All', style='Head.TButton',
             command=self.move_all
         ).pack(side='left', padx=(0, 10), pady=10)
-        ttk.Checkbutton(
-            self, text='  Exclude All', style='Head.TCheckbutton'
-        ).pack(side='right', padx=10, pady=10)
 
     def move(self, focus:str):
         values = self.tree.item(focus)['values']
@@ -425,7 +433,6 @@ class FilterMessageBoxTab(NotebookTab):
         # Set focus on the changed row
         self.tree.focus(new)
         self.tree.selection_set(new)
-        self.master.master.apply_changes()
 
     def move_selected(self):
         self.move(self.tree.focus())
