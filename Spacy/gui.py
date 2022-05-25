@@ -302,7 +302,7 @@ class CustomMessageBox(tk.Toplevel):
         self.root: AppRoot = self.nametowidget('')
         # # configure toplevel widget geometry
         # w, h = 400, 250
-        x, y = self.root.winfo_x(), self.root.winfo_y()
+        x, y = self.root.winfo_x() + 20, self.root.winfo_y() + 20
         # x += int((self.root.winfo_width() / 2) - w / 2)
         # y += int((self.root.winfo_height() / 2) - h / 2)
         self.geometry(f'+{x}+{y}')
@@ -350,7 +350,6 @@ class FilterMessageBox(CustomMessageBox):
         return result
 
 
-
 class NotebookTab(ttk.Frame):
     def __init__(self, notebook, title:str, desc:str='', *args, **kw):
         super().__init__(notebook, *args, **kw)
@@ -394,7 +393,7 @@ class FilterMessageBoxTab(NotebookTab):
         ttk.Checkbutton(
             self, text='  Exclude All', style='Head.TCheckbutton'
         ).pack(side='right', padx=10, pady=10)
-        
+
     def move(self, focus:str):
         values = self.tree.item(focus)['values']
         if not values: return
@@ -407,14 +406,14 @@ class FilterMessageBoxTab(NotebookTab):
         # Set focus on the changed row
         self.tree.focus(new)
         self.tree.selection_set(new)
-        
+
     def move_selected(self):
         self.move(self.tree.focus())
-        
+
     def move_all(self):
         for item in self.tree.get_children():
             self.move(item)
-       
+
 
 class Notebook(ttk.Notebook):
     """Tkinter frame that ouputs results from spacy"""
