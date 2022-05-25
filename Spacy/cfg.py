@@ -31,7 +31,8 @@ defaults = {
         'MONEY': 'Monetary values, including unit.',
         'QUANTITY': 'Measurements, as of weight or distance.',
         'ORDINAL': '“first”, “second”, etc.',
-        'CARDINAL': 'Numerals that do not fall under another type.'
+        'CARDINAL': 'Numerals that do not fall under another type.',
+        'N/A': 'No entities apply to this word or sentence.'
     },
     'POS_tags': {  # universal part of speech categories
         # open
@@ -53,6 +54,7 @@ defaults = {
         # other
         'PUNCT': 'Punctuation',
         'SYM': 'Symbol',
+        'SPACE': 'Space',
         'X': 'Other'
     },
     'colours': {
