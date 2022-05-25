@@ -254,7 +254,7 @@ class CustomTreeView(ttk.Treeview):
     def update_tree(self, data:list[list, list]):
         """Update the values in the treeview"""
         old_data = self.get_children()
-        self.data = self.filter(data)
+        self.data = data
         self.filtered_data = self.filter(data)
         # If the data is identical to the previous data, don't bother
         # updating the widget with the new data.
@@ -267,9 +267,10 @@ class CustomTreeView(ttk.Treeview):
         log.debug(f'Populating treeview {self}')
         # Insert new data into treeview widget
         self.delete(*old_data)
-        for i, row in enumerate(data):
+        for i, row in enumerate(self.filtered_data):
             tag = self.parity(i)
             self.insert('', 'end', values=row, tags=(tag,))
+        print(self.filtered_data in [self.item(r)['values'][1] for r in self.get_children()])
         log.debug(
             f'Finished populating treeview {self} with {i} widgets'
         )
@@ -279,7 +280,7 @@ class CustomTreeView(ttk.Treeview):
         hidden = self.hidden_ents.copy()
         hidden.extend(self.hidden_pos)
         for i, row in enumerate(data):
-            if any(item.lower() in hidden for item in row):
+            if any(item.upper() in hidden for item in row):
                 log.debug(
                     f'Removing row {row} because it contains a ' \
                     'filtered item'
@@ -293,6 +294,7 @@ class CustomTreeView(ttk.Treeview):
         self.hidden_ents = hidden_ents
         self.hidden_pos = hidden_pos
         if update:
+            print('updating tree')
             self.update_tree(data=self.data)
 
 
@@ -340,10 +342,22 @@ class FilterMessageBox(CustomMessageBox):
             data=self._sort_data(self.pos, self.hidden_pos)
         )
 
+    def _get_hidden(self, tab):
+        # Extract data
+        hidden = [
+            tab.tree.item(item)['values'][1] \
+            for item in tab.tree.get_children()
+        ]
+        # Remove spaces from extracted data
+        hidden = [i for i in hidden if i != '']
+        return hidden
+
     def apply_changes(self):
-        self.hidden_ents = self.ent_tab.tree.get_children()
-        self.hidden_pos = self.pos_tab.tree.get_children()
-        print(self.hidden_ents, self.hidden_pos)
+        self.hidden_ents = self._get_hidden(self.ents_tab)
+        self.hidden_pos = self._get_hidden(self.pos_tab)
+        self.results_tab.tree.set_filter(
+            self.hidden_ents, self.hidden_pos, update=True
+        )
         
     def _sort_data(self, data:list, hidden:list) -> list[list, list]:
         result = []
@@ -411,6 +425,7 @@ class FilterMessageBoxTab(NotebookTab):
         # Set focus on the changed row
         self.tree.focus(new)
         self.tree.selection_set(new)
+        self.master.master.apply_changes()
 
     def move_selected(self):
         self.move(self.tree.focus())
