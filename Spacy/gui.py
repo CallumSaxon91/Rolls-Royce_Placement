@@ -326,19 +326,24 @@ class FilterMessageBox(CustomMessageBox):
         # Create widgets
         notebook = ttk.Notebook(self)
         notebook.pack(fill='both', expand=True)
-        ents_tab = FilterMessageBoxTab(notebook, title='Entities')
-        pos_tab = FilterMessageBoxTab(
+        self.ents_tab = FilterMessageBoxTab(notebook, title='Entities')
+        self.pos_tab = FilterMessageBoxTab(
             notebook, title='Parts Of Speech'
         )
-        notebook.add(ents_tab, text='Entities') # repeats bad
-        notebook.add(pos_tab, text='Parts Of Speech')
+        notebook.add(self.ents_tab, text='Entities') # repeats bad
+        notebook.add(self.pos_tab, text='Parts Of Speech')
         # Populate trees
-        ents_tab.tree.update_tree(
+        self.ents_tab.tree.update_tree(
             data=self._sort_data(self.entities, self.hidden_ents)
         )
-        pos_tab.tree.update_tree(
+        self.pos_tab.tree.update_tree(
             data=self._sort_data(self.pos, self.hidden_pos)
         )
+
+    def apply_changes(self):
+        self.hidden_ents = self.ent_tab.tree.get_children()
+        self.hidden_pos = self.pos_tab.tree.get_children()
+        print(self.hidden_ents, self.hidden_pos)
         
     def _sort_data(self, data:list, hidden:list) -> list[list, list]:
         result = []
@@ -475,7 +480,7 @@ class ResultsTab(NotebookTab):
         data = [
             self.tree.item(row)['values'] \
             for row in self.tree.get_children()
-            ]
+        ]
         if not fp:
             fp = settings.auto_save_path.get()
         fp += '/output.csv'
