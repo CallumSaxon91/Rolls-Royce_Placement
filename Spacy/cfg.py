@@ -58,26 +58,37 @@ defaults = {
         'X': 'Other'
     },
     'colours': {
-        'foreground': 'gray20',
-        'background': 'gray85',
-        'accentforeground': 'DodgerBlue3',
-        'accentbackground': 'gray80',
-        'selectforeground': 'gray100',
-        'selectbackground': 'DodgerBlue',
-        'buttonpadding': [5, 0, 5, 0],
-        'buttonrelief': 'groove',
-        "success": "forest green",
-        "relief": "flat"
+        'white': 'gray100',
+        'black': 'gray0',
+        'foreground_primary': 'gray20',
+        'foreground_secondary': 'gray15',
+        'foreground_accent': 'DodgerBlue3',
+        'background_primary': 'gray85',
+        'background_secondary': 'gray80',
+        'background_accent': 'DodgerBlue',
+        'relief_primary': 'flat',
+        'relief_secondary': 'groove',
+        'relief_accent': 'groove',
+        'accent': 'forest green'
+        
+        # 'foreground': 'gray20',
+        # 'background': 'gray85',
+        # 'accentforeground': 'DodgerBlue3',
+        # 'accentbackground': 'gray80',
+        # 'selectforeground': 'gray100',
+        # 'selectbackground': 'DodgerBlue',
+        # 'buttonrelief': 'groove',
+        # "success": "forest green",
+        # "relief": "flat"
     },
-    # experimental
+    # experimental dark mode
     'colours_dark': {
         'foreground': 'gray90',
-        'background': 'gray30',
+        'background': 'gray40',
         'accentforeground': 'DodgerBlue3',
-        'accentbackground': 'gray40',
+        'accentbackground': 'gray30',
         'selectforeground': 'gray100',
         'selectbackground': 'DodgerBlue',
-        'buttonpadding': [5, 0, 5, 0],
         'buttonrelief': 'groove',
         "success": "forest green",
         "relief": "flat"
@@ -91,7 +102,7 @@ class ConfigManager(ConfigParser):
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
-        self.validate()  # pass True to restore defaults
+        self.validate(True)  # pass True to restore defaults
         self.read(self.fp)
 
     def validate(self, force_restore:bool=False):

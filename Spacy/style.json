@@ -3,67 +3,67 @@
         "Text": {
             "configure": {
                 "borderwidth": 1,
-                "relief": "buttonrelief"
+                "relief": "relief_secondary"
             }
         }
     },
     "ttk": {
         "TFrame": {
             "configure": {
-                "background": "background"
+                "background": "background_primary"
             }
         },
         "TMenubutton": {
             "configure": {
-                "foreground": "foreground",
-                "background": "background",
-                "focuscolor": "background",
-                "relief": "buttonrelief",
+                "foreground": "foreground_primary",
+                "background": "background_primary",
+                "focuscolor": "background_primary",
+                "relief": "relief_secondary",
                 "padding": [5, 0, 5, 0]
             }
         },
         "Head.TFrame": {
             "configure": {
-                "foreground": "accentbackground",
-                "background": "accentbackground"
+                "foreground": "foreground_accent",
+                "background": "background_secondary"
             }
         },
         "Head.TLabel": {
             "configure": {
-                "foreground": "foreground",
-                "background": "accentbackground",
+                "foreground": "foreground_primary",
+                "background": "background_secondary",
                 "font": "TkDefaultFont 8 bold"
             }
         },
         "HeadTitle.TLabel": {
             "configure": {
-                "foreground": "foreground",
-                "background": "accentbackground",
+                "foreground": "foreground_primary",
+                "background": "background_secondary",
                 "font": "TkDefaultFont 11 bold"
             }
         },
         "Head.TButton": {
             "configure": {
-                "foreground": "foreground",
-                "background": "background",
+                "foreground": "foreground_primary",
+                "background": "background_primary",
                 "padding": [5, 0, 5, 0],
-                "focuscolor": "background"
+                "focuscolor": "background_primary"
             }
         },
         "Compound.TButton": {
             "configure": {
-                "foreground": "foreground",
-                "background": "background",
+                "foreground": "foreground_primary",
+                "background": "background_primary",
                 "padding": [5, 0, 3, 0],
-                "focuscolor": "background"
+                "focuscolor": "background_primary"
             }
         },
         "TButton": {
             "configure": {
-                "foreground": "foreground",
-                "background": "background",
-                "focuscolour": "background",
-                "relief": "buttonrelief",
+                "foreground": "foreground_primary",
+                "background": "background_primary",
+                "focuscolour": "background_primary",
+                "relief": "relief_secondary",
                 "anchor": "center"
             },
             "map": {
@@ -81,21 +81,21 @@
         "TEntry": {
             "configure": {
                 "padding": [3, 0, 3, 0],
-                "selectforeground": "selectforeground",
-                "selectbackground": "selectbackground"
+                "selectforeground": "white",
+                "selectbackground": "background_accent"
             }
         },
         "TCheckbutton": {
             "configure": {
-                "focuscolor": "background"
+                "focuscolor": "background_primary"
             }
         },
         "HyperLink.TButton": {
             "configure": {
-                "foreground": "accentforeground",
-                "background": "background",
-                "focuscolor": "background",
-                "relief": "relief"
+                "foreground": "foreground_accent",
+                "background": "background_primary",
+                "focuscolor": "background_primary",
+                "relief": "relief_primary"
             },
             "map": {
                 "foreground": [
@@ -108,7 +108,7 @@
         },
         "Horizontal.TProgressbar": {
             "configure": {
-                "background": "success"
+                "background": "accent"
             }
         },
         "AddressBar.TFrame": {
@@ -117,17 +117,17 @@
         },
         "AddressBar.TButton": {
             "configure": {
-                "background": "background",
-                "focuscolor": "background",
+                "background": "background_primary",
+                "focuscolor": "background_primary",
                 "borderwidth": 2,
-                "relief": "buttonrelief",
+                "relief": "relief_secondary",
                 "padding": [10, 0, 10, 0]
             }
         },
         "AddressBarImg.TButton": {
             "configure": {
-                "focuscolor": "background",
-                "relief": "relief"
+                "focuscolor": "background_primary",
+                "relief": "relief_primary"
             },
             "map": {
                 "relief": [
@@ -158,7 +158,7 @@
         },
         "SettingWidget.TCheckbutton": {
             "configure": {
-                "focuscolor": "background"
+                "focuscolor": "background_primary"
             }
         },
         "SettingWidget.TEntry": {
@@ -167,16 +167,16 @@
         },
         "TNotebook": {
             "configure": {
-                "background": "background",
-                "lightcolor": "background",
-                "darkcolor": "background"
+                "background": "background_primary",
+                "lightcolor": "background_primary",
+                "darkcolor": "background_primary"
             }
         },
         "TNotebook.Tab": {
             "configure": {
-                "foreground": "foreground",
-                "background": "background",
-                "focuscolor": "accentbackground",
+                "foreground": "foreground_primary",
+                "background": "background_primary",
+                "focuscolor": "background_secondary",
                 "padding": [7, 0, 7, 0]
             },
             "map": {
@@ -187,7 +187,7 @@
         },
         "Treeview": {
             "configure": {
-                "fieldbackground": "background",
+                "fieldbackground": "background_primary",
                 "highlightthickness": 0
             },
             "layout": [
@@ -199,8 +199,8 @@
         },
         "Treeview.Heading": {
             "configure": {
-                "foreground": "foreground",
-                "background": "accentbackground"
+                "foreground": "foreground_primary",
+                "background": "background_secondary"
             }
         },
         "Selectable.Treeview": {
