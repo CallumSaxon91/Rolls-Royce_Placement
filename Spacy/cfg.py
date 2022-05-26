@@ -1,3 +1,4 @@
+import logging
 import tkinter as tk
 from configparser import ConfigParser
 from appdirs import AppDirs
@@ -7,6 +8,9 @@ from os import path
 from constants import OUTPUT_DIR
 
 
+log = logging.getLogger(__name__)
+
+# TODO: this should not be stored here
 defaults = {
     'settings': {
         'auto_save': 'no',
@@ -71,17 +75,8 @@ defaults = {
         'relief_accent': 'groove',
         'accent': 'forest green'
         
-        # 'foreground': 'gray20',
-        # 'background': 'gray85',
-        # 'accentforeground': 'DodgerBlue3',
-        # 'accentbackground': 'gray80',
-        # 'selectforeground': 'gray100',
-        # 'selectbackground': 'DodgerBlue',
-        # 'buttonrelief': 'groove',
-        # "success": "forest green",
-        # "relief": "flat"
     },
-    # experimental dark mode
+    # experimental dark mode (don't use)
     'colours_dark': {
         'foreground': 'gray90',
         'background': 'gray40',
@@ -107,17 +102,23 @@ class ConfigManager(ConfigParser):
 
     def validate(self, force_restore:bool=False):
         """create config file if it doesnt exist"""
+        log.debug('Validating configs')
         if path.exists(self.fp) and not force_restore:
             return
+        log.info('Restoring config defaults')
         for section, options in defaults.items():
             self[section] = options
         with open(self.fp, 'w') as file: 
             self.write(file)
 
     def update(self, section, variable):
-        self.set(section, str(variable), str(variable.get()))
+        value = variable.get()
+        self.set(section, str(variable), str(value))
         with open(self.fp, 'w') as file:
             self.write(file)
+        log.debug(
+            f'Updated config: [{section}]-[{variable}]-[{value}]'
+        )
 
     def create_settings_vars(self) -> list:
         """returns list of tk vars created from the configuration"""
