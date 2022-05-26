@@ -132,18 +132,23 @@
                 "background": "background-primary",
                 "lightcolor": "background-primary",
                 "darkcolor": "background-primary",
-                "tabmargins": [0, 0, 0, 0]
+                "tabmargins": [5, 0, 0, 0]
             }
         },
         "TNotebook.Tab": {
             "configure": {
                 "foreground": "foreground-primary",
                 "background": "background-primary",
+                "lightcolor": "background-primary",
+                "darkcolor": "background-primary",
                 "focuscolor": "background-primary",
                 "padding": [7, 0, 7, 0]
             },
             "map": {
-                "background": [["selected", "background-secondary"]]
+                "background": [["selected", "background-secondary"]],
+                "lightcolor": [["selected", "background-secondary"]],
+                "darkcolor": [["selected", "background-secondary"]],
+                "focuscolor": [["selected", "background-secondary"]]
             }
         },
         "Treeview": {
