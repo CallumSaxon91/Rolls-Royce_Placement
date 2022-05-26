@@ -2,68 +2,68 @@ import json
 import logging
 from tkinter import ttk, font as tkfont
 
-from constants import SPACY_DIR
+from constants import THEME_DIR
 
 
 log = logging.getLogger(__name__)
 
 
 class Style(ttk.Style):
+    """Custom tkinter style manager"""
+    colours: dict
+    theme: dict
+    
     def __init__(self, root):
-        log.debug('Initializing application style')
         super().__init__(root)
-        self.colours = root.cfg['colours']
-        with open(f'{SPACY_DIR}\style.json', 'r') as file:
-            theme_settings = json.load(file)
-        # update the default font
-        default_font = tkfont.nametofont('TkDefaultFont')
-        default_font.configure(family='Segoe UI',  size=9)
-        # apply colours to style
-        theme_settings['tk'] = self._apply_colours(
-            theme_settings['tk']
-        )
-        theme_settings['ttk'] = self._apply_colours(
-            theme_settings['ttk']
-        )
-        # create and apply the theme
-        self.theme_create(
-            themename='default_theme',
-            parent='clam',
-            settings=theme_settings['ttk']
-        )
-        self.theme_use('default_theme')
-        # get all non-ttk widgets
-        widgets = root.winfo_children()
-        for widget in widgets:
-            if widget.winfo_children():
-                widgets.extend(widget.winfo_children())
-        # apply style options for non-ttk widgets
-        for widget in widgets:
-            for widget_name, style in theme_settings['tk'].items():
-                if widget.__class__.__name__ == widget_name:
-                    widget.config(**style['configure'])
+        self.colours = self._load_colour_file('colours.json')
+        self.theme = self._load_theme_file('theme.json')
+        self._prep_theme()
+        self.theme_create(**self.theme)
+        self.theme_use('theme')  # name of theme in theme.json
 
-    def _apply_colours(self, theme_settings):
-        c = self.colours
-        # This is not complete and needs to be redesigned
-        for k1, v1 in theme_settings.items():
-            for k2, v2 in v1.items():
-                match k2:
-                    case 'configure':
-                        for k3, v3 in v2.items():
-                            try:
-                                theme_settings[k1][k2][k3] = c[v3]
-                            except KeyError:
-                                log.warning(f'Colour config has no option: {v3}')
-                            except AttributeError:
-                                log.warning(
-                                    'Colour config does not support ' \
-                                    f'non-string: {v3}'
-                                )
-                    case 'map':
-                        pass # TODO: here
-                    
+    def _convert_colour(self, widget:str, section:str, option:str, value:str):
+        try:
+            colour_opt, colour_val = value.split('-')
+        except ValueError: return
+        except AttributeError: return
+        self.theme['settings'][widget][section][option] = \
+        self.colours['light'][colour_opt][colour_val]
+
+    def _prep_configure(self, widget:str, configure:dict):
+        for option, value in configure.items():
+            self._convert_colour(widget, 'configure', option, value)
+
+    def _prep_map(self, widget:str, map:dict):
+        for option, value in map.items():
+            pass
+
+    def _prep_theme(self):
+        settings = self.theme['settings']
+        for widget, w_content in settings.items():
+            for section, s_content in w_content.items():
+                match section:
+                    case "configure":
+                        self._prep_configure(widget, s_content)
+                    case "map":
+                        self._prep_map(widget, s_content)
+                    case "layout":
+                        # ignore layout sections
+                        continue
                     case _:
-                        continue # TODO: here
-                
-        return theme_settings
+                        log.warning(
+                            'Unknown section in theme file ' \
+                            f'{widget}-{section}'
+                        )
+            
+    
+    def _load_colour_file(self, colours_filename:str):
+        with open(
+            f'{THEME_DIR}/{colours_filename}', 'r'
+        ) as colour_file:
+            colours = json.load(colour_file)
+        return colours
+    
+    def _load_theme_file(self, theme_filename:str):
+        with open(f'{THEME_DIR}/{theme_filename}', 'r') as theme_file:
+            theme = json.load(theme_file)
+        return theme
