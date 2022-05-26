@@ -224,12 +224,17 @@ class CustomTreeView(ttk.Treeview):
             **kw
         )
         log.debug(f'Constructing treeview widget: {self}')
+        self.root = self.nametowidget('')
         # Configure treeview
-        self.tag_configure(EVEN, background='gray90')
-        self.tag_configure(ODD, background='gray85')
+        self.after(10, self._setup_tag_colours)
         self._set_headings(headings, anchor)
         if include_scrollbar:
             self._build_scrollbar()
+            
+    def _setup_tag_colours(self):
+        colours = self.root.style.colours
+        self.tag_configure(ODD, background=colours['treeview_odd'])
+        self.tag_configure(EVEN, background=colours['treeview_even'])
         
     def _build_scrollbar(self):
         """Build scrollbar for treeview"""

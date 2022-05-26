@@ -16,7 +16,7 @@ defaults = {
         'auto_save': 'no',
         'auto_save_path': str(OUTPUT_DIR),
         'default_url': 'https://en.wikipedia.org/wiki/',
-        'group_entities': 'yes'
+        'group_entities': 'no'
     },
     'entities': {
         'PERSON': 'People, including fictional characters.',
@@ -69,12 +69,14 @@ defaults = {
         'foreground_secondary': 'gray15',
         'foreground_accent': 'DodgerBlue3',
         'background_primary': 'ghost white',
-        'background_secondary': 'gray80',
+        'background_secondary': 'snow2',
         'background_accent': 'DodgerBlue',
         'relief_primary': 'flat',
         'relief_secondary': 'groove',
         'relief_accent': 'groove',
-        'accent': 'forest green'
+        'accent': 'forest green',
+        'treeview_odd': 'ghost white',
+        'treeview_even': 'ghost white'
         
     },
     # experimental dark mode (don't use)

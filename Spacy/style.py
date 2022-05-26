@@ -12,7 +12,7 @@ class Style(ttk.Style):
     def __init__(self, root):
         log.debug('Initializing application style')
         super().__init__(root)
-        colours = root.cfg['colours']
+        self.colours = root.cfg['colours']
         with open(f'{SPACY_DIR}\style.json', 'r') as file:
             theme_settings = json.load(file)
         # update the default font
@@ -20,10 +20,10 @@ class Style(ttk.Style):
         default_font.configure(family='Segoe UI',  size=9)
         # apply colours to style
         theme_settings['tk'] = self._apply_colours(
-            theme_settings['tk'], colours
+            theme_settings['tk']
         )
         theme_settings['ttk'] = self._apply_colours(
-            theme_settings['ttk'], colours
+            theme_settings['ttk']
         )
         # create and apply the theme
         self.theme_create(
@@ -43,7 +43,8 @@ class Style(ttk.Style):
                 if widget.__class__.__name__ == widget_name:
                     widget.config(**style['configure'])
 
-    def _apply_colours(self, theme_settings, colours):
+    def _apply_colours(self, theme_settings):
+        c = self.colours
         # This is not complete and needs to be redesigned
         for k1, v1 in theme_settings.items():
             for k2, v2 in v1.items():
@@ -51,7 +52,7 @@ class Style(ttk.Style):
                     case 'configure':
                         for k3, v3 in v2.items():
                             try:
-                                theme_settings[k1][k2][k3] = colours[v3]
+                                theme_settings[k1][k2][k3] = c[v3]
                             except KeyError:
                                 log.warning(f'Colour config has no option: {v3}')
                             except AttributeError:

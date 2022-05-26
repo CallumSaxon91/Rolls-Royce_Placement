@@ -71,17 +71,18 @@
             },
             "map": {
                 "relief": [["pressed", "sunken"]],
-                "background": [["pressed", "gray80"]],
-                "focuscolor": [["pressed", "gray80"]],
-                "lightcolor": [["pressed", "gray80"]],
-                "darkcolor": [["pressed", "gray80"]]
+                "background": [["pressed", "snow2"]],
+                "focuscolor": [["pressed", "snow2"]],
+                "lightcolor": [["pressed", "snow2"]],
+                "darkcolor": [["pressed", "snow2"]]
             }
         },
         "TEntry": {
             "configure": {
                 "padding": [3, 0, 3, 0],
                 "selectforeground": "white",
-                "selectbackground": "background_accent"
+                "selectbackground": "background_accent",
+                "fieldbackground": "background_primary"
             }
         },
         "TCheckbutton": {
@@ -133,7 +134,7 @@
                     ["pressed", "flat"]
                 ],
                 "background": [
-                    ["pressed", "gray85"]
+                    ["pressed", "ghost white"]
                 ]
             }
         },
@@ -147,17 +148,20 @@
         },
         "SettingWidget.TLabel": {
             "configure": {
-                "font": "TkDefaultFont 10"
+                "font": "TkDefaultFont 10",
+                "background": "background_primary"
             }
         },
         "SettingWidgetDesc.TLabel": {
             "configure": {
-                "font": "TkDefaultFont 9"
+                "font": "TkDefaultFont 9",
+                "background": "background_primary"
             }
         },
         "SettingWidget.TCheckbutton": {
             "configure": {
-                "focuscolor": "background_primary"
+                "focuscolor": "background_primary",
+                "background": "background_primary"
             }
         },
         "SettingWidget.TEntry": {
@@ -181,13 +185,13 @@
             },
             "map": {
                 "background": [
-                    ["selected", "gray80"]
+                    ["selected", "snow2"]
                 ]
             }
         },
         "Treeview": {
             "configure": {
-                "fieldbackground": "background_primary",
+                "background": "background_primary",
                 "highlightthickness": 0
             },
             "layout": [
