@@ -15,6 +15,7 @@ class Style(ttk.Style):
     
     def __init__(self, root):
         super().__init__(root)
+        self.colour_mode = root.notebook.settings_tab.colour_mode.get()
         self.colours = self._load_colour_file('colours.json')
         self.theme = self._load_theme_file('theme.json')
         self._prep_theme()
@@ -26,7 +27,7 @@ class Style(ttk.Style):
             colour_opt, colour_val = value.split('-')
         except ValueError: return value
         except AttributeError: return value
-        return self.colours['dark'][colour_opt][colour_val]
+        return self.colours[self.colour_mode][colour_opt][colour_val]
 
     def _prep_configure(self, widget:str, configure:dict):
         for option, value in configure.items():

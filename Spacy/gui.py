@@ -573,7 +573,7 @@ class SettingWidget(ttk.Frame):
     """Base widget for widgets in settings menu"""
     def __init__(
         self, master, label:str, desc:str, var:tk.Variable, **kw
-        ):
+    ):
         log.debug(f'Initializing setting widget at {master}')
         super().__init__(master, style='SettingWidget.TFrame', **kw)
         self.columnconfigure(0, weight=1)
@@ -601,18 +601,32 @@ class CheckBoxSetting(SettingWidget):
     """Setting with a checkbox. Best used with a boolean setting."""
     def __init__(
             self, master, label:str, desc:str, var:tk.Variable, **kw
-        ):
+    ):
         super().__init__(master, label, desc, var, **kw)
         ttk.Checkbutton(
             self, variable=var, style='SettingWidget.TCheckbutton'
         ).grid(column=1, row=0, sticky='w')
+        
+
+class RadioSetting(SettingWidget):
+    """Setting with a radio button"""
+    def __init__(
+        self, master, label:str, desc:str, var:tk.Variable,
+        options:tuple[str], **kw
+    ):
+        super().__init__(master, label, desc, var, **kw)
+        for col, opt in enumerate(options):
+            ttk.Radiobutton(
+                self, text=opt.title(), value=opt, variable=var,
+                style='SettingWidget.TRadiobutton'
+            ).grid(column=col, columnspan=1, row=1, sticky='e')
 
 
 class TextSetting(SettingWidget):
     """Setting with a text box. Best used with a string setting"""
     def __init__(
         self, master, label:str, desc:str, var:tk.Variable, **kw
-        ):
+    ):
         super().__init__(master, label, desc, var, **kw)
         ttk.Entry(
             self, textvariable=var, style='SettingWidget.TEntry'
@@ -663,7 +677,13 @@ class SettingsTab(NotebookTab):
                  'line',
             var=self.group_entities
         )
-        self.group_entities_checkbox.pack(pack_info)
+        #self.group_entities_checkbox.pack(pack_info)
+        self.colour_mode_radio = RadioSetting(
+            frame, label='Colour Theme',
+            desc='The current colour theme (restart required)',
+            var=self.colour_mode, options=('light', 'dark')
+        )
+        self.colour_mode_radio.pack(pack_info)
 
 
 # WIP
