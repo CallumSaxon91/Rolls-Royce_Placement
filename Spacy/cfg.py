@@ -68,7 +68,7 @@ defaults = {
         'foreground_primary': 'gray20',
         'foreground_secondary': 'gray15',
         'foreground_accent': 'DodgerBlue3',
-        'background_primary': 'gray85',
+        'background_primary': 'ghost white',
         'background_secondary': 'gray80',
         'background_accent': 'DodgerBlue',
         'relief_primary': 'flat',
@@ -98,7 +98,7 @@ class ConfigManager(ConfigParser):
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
-        self.validate()  # pass True to restore defaults
+        self.validate(True)  # pass True to restore defaults
         self.read(self.fp)
 
     def validate(self, force_restore:bool=False):

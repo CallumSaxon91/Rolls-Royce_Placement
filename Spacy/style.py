@@ -42,22 +42,27 @@ class Style(ttk.Style):
             for widget_name, style in theme_settings['tk'].items():
                 if widget.__class__.__name__ == widget_name:
                     widget.config(**style['configure'])
-                    
+
     def _apply_colours(self, theme_settings, colours):
         # This is not complete and needs to be redesigned
         for k1, v1 in theme_settings.items():
             for k2, v2 in v1.items():
-                if k2 != 'configure':
-                    continue
-                for k3, v3 in v2.items():
-                    try:
-                        theme_settings[k1][k2][k3] = colours[v3]
-                    except KeyError:
-                        log.warning(f'Colour config has no option: {v3}')
-                    except AttributeError:
-                        log.warning(
-                            'Colour config does not support ' \
-                            f'non-string: {v3}'
-                        )
+                match k2:
+                    case 'configure':
+                        for k3, v3 in v2.items():
+                            try:
+                                theme_settings[k1][k2][k3] = colours[v3]
+                            except KeyError:
+                                log.warning(f'Colour config has no option: {v3}')
+                            except AttributeError:
+                                log.warning(
+                                    'Colour config does not support ' \
+                                    f'non-string: {v3}'
+                                )
+                    case 'map':
+                        pass # TODO: here
+                    
+                    case _:
+                        continue # TODO: here
                 
         return theme_settings

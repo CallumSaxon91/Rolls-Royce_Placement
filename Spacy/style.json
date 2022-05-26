@@ -63,19 +63,18 @@
                 "foreground": "foreground_primary",
                 "background": "background_primary",
                 "focuscolour": "background_primary",
+                "lightcolor": "background_primary",
+                "darkcolor": "background_primary",
                 "relief": "relief_secondary",
-                "anchor": "center"
+                "anchor": "center",
+                "borderwidth": 1
             },
             "map": {
-                "relief": [
-                    ["pressed", "sunken"]
-                ],
-                "background": [
-                    ["pressed", "gray80"]
-                ],
-                "focuscolor": [
-                    ["pressed", "gray80"]
-                ]
+                "relief": [["pressed", "sunken"]],
+                "background": [["pressed", "gray80"]],
+                "focuscolor": [["pressed", "gray80"]],
+                "lightcolor": [["pressed", "gray80"]],
+                "darkcolor": [["pressed", "gray80"]]
             }
         },
         "TEntry": {
@@ -169,7 +168,8 @@
             "configure": {
                 "background": "background_primary",
                 "lightcolor": "background_primary",
-                "darkcolor": "background_primary"
+                "darkcolor": "background_primary",
+                "tabmargins": [5, 0, 0, 0]
             }
         },
         "TNotebook.Tab": {
