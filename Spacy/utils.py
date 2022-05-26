@@ -8,7 +8,7 @@ from itertools import count
 from PIL import Image, ImageTk
 
 from exceptions import NoImageFound
-from constants import FILENAME_FORMAT_PREFIX, ASSETS_DIR
+from constants import FILENAME_FORMAT_PREFIX, ASSETS_DIR, SPACY_DIR
 
 
 log = logging.getLogger(__name__)
@@ -20,9 +20,9 @@ def validate_dirs(dirs) -> None:
     Path(dirs.user_config_dir).mkdir(parents=True, exist_ok=True)
     Path(dirs.user_log_dir).mkdir(parents=True, exist_ok=True)
     # create directories with the project files
-    for folder_name in ('output', 'assets'):
+    for folder_name in ('output', 'assets', 'theme'):
         Path(
-            f'{os.path.dirname(__file__)}\{folder_name}'
+            f'{SPACY_DIR}\{folder_name}'
         ).mkdir(parents=True, exist_ok=True)
 
 def open_new_file(dir:str, prefix:str='', ext:str='txt') -> TextIO:
