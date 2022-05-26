@@ -59,7 +59,6 @@ def parse_from_file(file:TextIOWrapper):
         return parse_string(''.join(content))
 
 def group_entities(data:list[list, list]) -> list[list, list]:
-    print('grouping data')
     grouped_data = []
     last_ent = ''
     group = ''
