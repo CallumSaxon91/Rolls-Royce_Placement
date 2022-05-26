@@ -126,6 +126,18 @@
                 "focuscolor": "background-primary"
             }
         },
+        "TRadiobutton": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "focuscolor": "background-primary"
+            }
+        },
+        "SettingWidget.TRadiobutton": {
+            "configure": {
+                "padding": [15, 0, 0, 0]
+            }
+        },
         "TNotebook": {
             "configure": {
                 "foreground": "foreground-primary",
