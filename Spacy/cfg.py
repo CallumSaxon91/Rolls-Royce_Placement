@@ -16,7 +16,8 @@ defaults = {
         'auto_save': 'no',
         'auto_save_path': str(OUTPUT_DIR),
         'default_url': 'https://en.wikipedia.org/wiki/',
-        'group_entities': 'no'
+        'group_entities': 'no',
+        'colour_mode': 'light'
     },
     'entities': {
         'PERSON': 'People, including fictional characters.',
@@ -61,35 +62,6 @@ defaults = {
         'SYM': 'Symbol',
         'SPACE': 'Space',
         'X': 'Other'
-    },
-    'colours': {
-        'white': 'gray100',
-        'black': 'gray0',
-        'foreground_primary': 'gray20',
-        'foreground_secondary': 'gray15',
-        'foreground_accent': 'DodgerBlue3',
-        'background_primary': 'ghost white',
-        'background_secondary': 'snow2',
-        'background_accent': 'DodgerBlue',
-        'relief_primary': 'flat',
-        'relief_secondary': 'groove',
-        'relief_accent': 'groove',
-        'accent': 'forest green',
-        'treeview_odd': 'ghost white',
-        'treeview_even': 'ghost white'
-        
-    },
-    # experimental dark mode (don't use)
-    'colours_dark': {
-        'foreground': 'gray90',
-        'background': 'gray40',
-        'accentforeground': 'DodgerBlue3',
-        'accentbackground': 'gray30',
-        'selectforeground': 'gray100',
-        'selectbackground': 'DodgerBlue',
-        'buttonrelief': 'groove',
-        "success": "forest green",
-        "relief": "flat"
     }
 }
 
@@ -100,7 +72,7 @@ class ConfigManager(ConfigParser):
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
-        self.validate(True)  # pass True to restore defaults
+        self.validate()  # pass True to restore defaults
         self.read(self.fp)
 
     def validate(self, force_restore:bool=False):
