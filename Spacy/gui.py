@@ -232,9 +232,11 @@ class CustomTreeView(ttk.Treeview):
             self._build_scrollbar()
             
     def _setup_tag_colours(self):
-        colours = self.root.style.colours
-        self.tag_configure(ODD, background=colours['treeview_odd'])
-        self.tag_configure(EVEN, background=colours['treeview_even'])
+        return  # disabled
+        colour_mode = self.root.notebook.settings_tab.colour_mode.get()
+        colours = self.root.style.colours[colour_mode]['background']
+        self.tag_configure(ODD, background=colours['tertiary'])
+        self.tag_configure(EVEN, background=colours['accent_1'])
         
     def _build_scrollbar(self):
         """Build scrollbar for treeview"""
@@ -508,7 +510,7 @@ class ResultsTab(NotebookTab):
         ).pack(side='right', padx=(5, 7), pady=5)
         # Create treeview widget
         self.tree = CustomTreeView(
-            self, style='Selectable.Treeview', 
+            self, style='Selectable.Treeview', anchor='w',
             headings=('words', 'entity type', 'part of speech')
         )
         self.tree.pack(
