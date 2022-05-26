@@ -108,6 +108,9 @@
                 "selectforeground": "background-primary",
                 "selectbackground": "foreground-positive",
                 "fieldbackground": "background-primary",
+                "lightcolor": "background-primary",
+                "darkcolor": "background-primary",
+                "insertcolor": "foreground-primary",
                 "padding": [3, 0, 3, 0],
                 "borderwidth": 1
             }
