@@ -241,7 +241,8 @@ class CustomTreeView(ttk.Treeview):
     def _build_scrollbar(self):
         """Build scrollbar for treeview"""
         self.scrollbar = ttk.Scrollbar(
-            self.master, orient='vertical', command=self.yview
+            self.master, orient='vertical', command=self.yview,
+            style='ArrowLess.Vertical.TScrollbar'
         )
         self.configure(yscrollcommand=self.scrollbar.set)
         # Pack the scrollbar after displaying the treeview
