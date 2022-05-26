@@ -21,21 +21,23 @@ class Style(ttk.Style):
         self.theme_create(**self.theme)
         self.theme_use('theme')  # name of theme in theme.json
 
-    def _convert_colour(self, widget:str, section:str, option:str, value:str):
+    def _convert_colour(self, value:str):
         try:
             colour_opt, colour_val = value.split('-')
-        except ValueError: return
-        except AttributeError: return
-        self.theme['settings'][widget][section][option] = \
-        self.colours['light'][colour_opt][colour_val]
+        except ValueError: return value
+        except AttributeError: return value
+        return self.colours['dark'][colour_opt][colour_val]
 
     def _prep_configure(self, widget:str, configure:dict):
         for option, value in configure.items():
-            self._convert_colour(widget, 'configure', option, value)
+            colour = self._convert_colour(value)
+            self.theme['settings'][widget]['configure'][option] = colour
 
     def _prep_map(self, widget:str, map:dict):
         for option, value in map.items():
-            pass
+            for item in value:
+                colour = self._convert_colour(item[1])
+                self.theme['settings'][widget]['map'][option][value.index(item)][1] = colour
 
     def _prep_theme(self):
         settings = self.theme['settings']
@@ -54,15 +56,14 @@ class Style(ttk.Style):
                             'Unknown section in theme file ' \
                             f'{widget}-{section}'
                         )
-            
-    
+
     def _load_colour_file(self, colours_filename:str):
         with open(
             f'{THEME_DIR}/{colours_filename}', 'r'
         ) as colour_file:
             colours = json.load(colour_file)
         return colours
-    
+
     def _load_theme_file(self, theme_filename:str):
         with open(f'{THEME_DIR}/{theme_filename}', 'r') as theme_file:
             theme = json.load(theme_file)
