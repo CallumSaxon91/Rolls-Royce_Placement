@@ -1,0 +1,170 @@
+{
+    "themename": "theme",
+    "parent": "clam",
+    "settings": {
+        "TFrame": {
+            "configure": {
+                "background": "background-primary"
+            }
+        },
+        "Head.TFrame": {
+            "configure": {"background": "background-secondary"}
+        },
+        "TLabel": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "relief": "flat"
+            }
+        },
+        "Head.TLabel": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-secondary",
+                "font": "TkDefaultFont 8 bold"
+            }
+        },
+        "HeadTitle.TLabel": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-secondary",
+                "font": "TkDefaultFont 11 bold"
+            }
+        },
+        "SettingWidget.TLabel": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "font": "TkDefaultFont 10"
+            }
+        },
+        "SettingWidgetDesc.TLabel": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "font": "TkDefaultFont 9"
+            }
+        },
+        "TButton": {
+            "configure": {
+                "foreground": "foreground-secondary",
+                "background": "background-secondary",
+                "lightcolor": "background-secondary",
+                "darkcolor": "background-secondary",
+                "focuscolor": "background-secondary",
+                "borderwidth": 1,
+                "relief": "groove",
+                "anchor": "center"
+            },
+            "map": {
+                "foreground": [["pressed", "foreground-secondary"]],
+                "background": [["pressed", "background-tertiary"]],
+                "lightcolor": [["pressed", "background-tertiary"]],
+                "darkcolor": [["pressed", "background-tertiary"]],
+                "focuscolor": [["pressed", "background-tertiary"]],
+                "relief": [["pressed", "sunken"]]
+            }
+        },
+        "Head.TButton": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "focuscolor": "background-primary",
+                "padding": [5, 0, 5, 0]
+            }
+        },
+        "Compound.TButton": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "focuscolor": "background-primary",
+                "padding": [5, 0, 3, 0]
+            }
+        },
+        "HyperLink.TButton": {
+            "configure": {}
+        },
+        "AddressBar.TButton": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "focuscolor": "background-primary",
+                "borderwidth": 2,
+                "relief": "groove",
+                "padding": [10, 0, 10, 0]
+            }
+        },
+        "AddressBarImg.TButton": {
+            "configure": {
+                "background": "background-primary",
+                "relief": "flat",
+                "borderwidth": 0
+            }
+        },
+        "TEntry": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "selectforeground": "background-primary",
+                "selectbackground": "foreground-positive",
+                "fieldbackground": "background-tertiary",
+                "padding": [3, 0, 3, 0],
+                "borderwidth": 1
+            }
+        },
+        "TCheckbutton": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "focuscolor": "background-primary"
+            }
+        },
+        "SettingWidget.TCheckbutton": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "focuscolor": "background-primary"
+            }
+        },
+        "TNotebook": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "lightcolor": "background-primary",
+                "darkcolor": "background-primary",
+                "tabmargins": [0, 0, 0, 0]
+            }
+        },
+        "TNotebook.Tab": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "focuscolor": "background-primary",
+                "padding": [7, 0, 7, 0]
+            },
+            "map": {
+                "background": [["selected", "background-secondary"]]
+            }
+        },
+        "Treeview": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "highlightthickness": 0
+            },
+            "layout": [["treeview.treearea", {"sticky": "nsew"}]]
+        },
+        "Treeview.Heading": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-secondary"
+            }
+        },
+        "Selectable.Treeview": {
+            "map": {
+                "foreground": [["selected", "background-primary"]],
+                "background": [["selected", "foreground-positive"]]
+            }
+        }
+    }
+}
