@@ -483,7 +483,7 @@ class Notebook(ttk.Notebook):
         self.add(self.results_tab, text='Results')
         self.add(self.legend_tab, text='Legend')
         self.add(self.settings_tab, text='Settings')
-        self.add(self.help_tab, text='Help')
+        # self.add(self.help_tab, text='Help')
 
 
 class ResultsTab(NotebookTab):
@@ -620,6 +620,10 @@ class SettingsTab(NotebookTab):
         cfg: ConfigManager = self.master.master.cfg
         for name, setting in cfg.create_settings_vars():
             setattr(self, name, setting)
+        ttk.Button(
+            self.head, text='Restore Defaults', style='Head.TButton',
+            command=lambda: cfg.validate(force_restore=True)
+        ).pack(side='right', padx=(5, 7), pady=5)
         # Setting widgets will be packed into this frame
         frame = ttk.Frame(self)
         frame.pack(side='top', anchor='w')
