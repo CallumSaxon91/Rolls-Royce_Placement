@@ -15,7 +15,8 @@ defaults = {
     'settings': {
         'auto_save': 'no',
         'auto_save_path': str(OUTPUT_DIR),
-        'default_url': 'https://en.wikipedia.org/wiki/'
+        'default_url': 'https://en.wikipedia.org/wiki/',
+        'group_entities': 'yes'
     },
     'entities': {
         'PERSON': 'People, including fictional characters.',

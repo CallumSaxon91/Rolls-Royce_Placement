@@ -9,7 +9,7 @@ from requests import ConnectionError as RequestsConnectionError
 
 from cfg import ConfigManager
 from exceptions import NotWikiPage
-from process import get_data_from_url, parse_string
+from process import get_data_from_url, parse_string, group_entities
 from style import Style
 from utils import image, export_to_csv, up_list
 from constants import EVEN, ODD
@@ -170,6 +170,9 @@ class AddressBar(ttk.Frame):
         title = f'Wikipedia - {data["title"]}'
         self.master.notebook.results_tab.head_title.set(title)
         data = parse_string("".join(data['content']))
+        # Group Entities
+        if self.settings.group_entities.get():
+            data = group_entities(data)
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
         # set flag to inform app that the thread has finished
@@ -649,6 +652,13 @@ class SettingsTab(NotebookTab):
             var=self.default_url
         )
         self.default_url_entry.pack(pack_info)
+        self.group_entities_checkbox = CheckBoxSetting(
+            frame, label='Group Entities',
+            desc='Entities of the same type will appear on the same ' \
+                 'line',
+            var=self.group_entities
+        )
+        self.group_entities_checkbox.pack(pack_info)
 
 
 # WIP
