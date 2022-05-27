@@ -341,7 +341,10 @@ class CustomMessageBox(tk.Toplevel):
 class FilterMessageBox(CustomMessageBox):
     def __init__(self):
         super().__init__()
-        self.protocol('WM_DELETE_WINDOW', self.apply_changes)
+        self.protocol('WM_DELETE_WINDOW', self.on_close)
+        colour_mode = self.root.notebook.settings_tab.colour_mode.get()
+        colours = self.root.style.colours[colour_mode]
+        self.configure(background=colours['background']['primary'])
         # Collect data
         self.results_tab = self.root.notebook.results_tab
         self.entities = self.root.cfg['entities']
@@ -350,7 +353,7 @@ class FilterMessageBox(CustomMessageBox):
         self.hidden_pos = self.results_tab.tree.hidden_pos
         # Create widgets
         notebook = ttk.Notebook(self)
-        notebook.pack(fill='both', expand=True)
+        notebook.pack(fill='both', expand=True, pady=(5, 0))
         self.ents_tab = FilterMessageBoxTab(notebook, title='Entities')
         self.pos_tab = FilterMessageBoxTab(
             notebook, title='Parts Of Speech'
@@ -375,14 +378,14 @@ class FilterMessageBox(CustomMessageBox):
         hidden = [i for i in hidden if i != '']
         return hidden
 
-    def apply_changes(self, close:bool=True):
-        self.hidden_ents = self._get_hidden(self.ents_tab)
-        self.hidden_pos = self._get_hidden(self.pos_tab)
-        self.results_tab.tree.set_filter(
-            self.hidden_ents, self.hidden_pos, update=True
-        )
-        if close:
-            self.destroy()
+    def on_close(self, apply:bool=False):
+        if apply:
+            self.hidden_ents = self._get_hidden(self.ents_tab)
+            self.hidden_pos = self._get_hidden(self.pos_tab)
+            self.results_tab.tree.set_filter(
+                self.hidden_ents, self.hidden_pos, update=True
+            )
+        self.destroy()
         
     def _sort_data(self, data:list, hidden:list) -> list[list, list]:
         result = []
@@ -435,6 +438,10 @@ class FilterMessageBoxTab(NotebookTab):
             self, text='Move All', style='Head.TButton',
             command=self.move_all
         ).pack(side='left', padx=(0, 10), pady=10)
+        ttk.Button(
+            self, text='Apply Filter', style='Head.TButton',
+            command=lambda: self.master.master.on_close(apply=True)
+        ).pack(side='right', padx=10, pady=10)
 
     def update_focus(self, item):
         self.tree.focus(item)
