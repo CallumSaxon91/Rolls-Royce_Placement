@@ -105,7 +105,7 @@
             "configure": {
                 "foreground": "foreground-primary",
                 "background": "background-primary",
-                "selectforeground": "background-primary",
+                "selectforeground": "white",
                 "selectbackground": "foreground-positive",
                 "fieldbackground": "background-primary",
                 "lightcolor": "background-primary",
@@ -207,7 +207,7 @@
         },
         "Selectable.Treeview": {
             "map": {
-                "foreground": [["selected", "background-primary"]],
+                "foreground": [["selected", "white"]],
                 "background": [["selected", "foreground-positive"]]
             }
         }
