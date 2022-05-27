@@ -64,6 +64,7 @@ class AddressBar(ttk.Frame):
         log.debug('Initializing address bar widget')
         super().__init__(master, style='AddressBar.TFrame')
         self.settings = self.master.notebook.settings_tab
+        colour = self.settings.colour_mode.get()
         self.search_term = tk.StringVar(
             value=self.settings.default_url.get()
         )
@@ -89,7 +90,7 @@ class AddressBar(ttk.Frame):
         )
         # Open file button
         self.file_btn = ImageButton(
-            self, img_fn='file.png', img_size=(20, 18),
+            self, img_fn=f'import_{colour}.png', img_size=(20, 18),
             command=self.on_file_btn, style='AddressBarImg.TButton'
         )
         self.file_btn.pack(side='right', padx=5)
@@ -97,7 +98,7 @@ class AddressBar(ttk.Frame):
         # Save file button
         sep.pack(side='right', before=self.file_btn, fill='y', pady=5)
         self.save_btn = ImageButton(
-            self, img_fn='save.png', img_size=(20, 20),
+            self, img_fn=f'save_{colour}.png', img_size=(20, 20),
             command=self.on_save_btn, style='AddressBarImg.TButton'
         )
         self.save_btn.pack(side='right', padx=5, before=sep)
@@ -185,7 +186,7 @@ class AddressBar(ttk.Frame):
         log.debug(f'Updating address bar GUI. Disabled = {searching}')
         if searching:
             self.progress_bar.pack(self.search_bar.pack_info())
-            self.progress_bar.start(5)
+            self.progress_bar.start(15)
             self.search_bar.pack_forget()
             self.search_btn.config(state='disabled')
             return
@@ -486,9 +487,9 @@ class Notebook(ttk.Notebook):
         log.debug('Initializing notebook')
         super().__init__(master)
         # Create notebook tabs
-        self.results_tab = ResultsTab(self)
         self.legend_tab = LegendTab(self)
         self.settings_tab = SettingsTab(self)
+        self.results_tab = ResultsTab(self)
         self.help_tab = HelpTab(self)
         # Show notebook tabs
         self.add(self.results_tab, text='Results')
@@ -503,9 +504,10 @@ class ResultsTab(NotebookTab):
         log.debug('Initializing results tab')
         super().__init__(master, title='Results')
         self.root = master.master
+        colour = master.settings_tab.colour_mode.get()
         # Create filter button widget
         ImageButton(
-            self.head, img_fn='filter.png', img_size=(18, 16),
+            self.head, img_fn=f'filter_{colour}.png', img_size=(18, 16),
             text='Filter Results', style='Compound.TButton',
             compound='right', command=self.show_filter_msgbox
         ).pack(side='right', padx=(5, 7), pady=5)
