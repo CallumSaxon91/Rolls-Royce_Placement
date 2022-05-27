@@ -3,7 +3,7 @@
         "foreground": {
             "primary": "#232223",
             "secondary": "#455B64",
-            "positive": "#0074BC",
+            "positive": "#2A99FD",
             "negative": "#BE0001",
             "disabled": "#CFD8DC"
         },
@@ -20,7 +20,7 @@
         "foreground": {
             "primary": "#FFFFFF",
             "secondary": "#B1BEC5",
-            "positive": "#0074BC",
+            "positive": "#0860BA",
             "negative": "#BE0001",
             "disabled": "#CFD8DC"
         },
