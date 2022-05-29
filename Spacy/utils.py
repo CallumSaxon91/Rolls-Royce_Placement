@@ -1,6 +1,11 @@
 import os
 import csv
 import logging
+import requests
+import numpy as np
+import spacy
+from spacy.language import Language
+from bs4 import BeautifulSoup
 from pathlib import Path
 from datetime import datetime
 from typing import TextIO
@@ -8,7 +13,9 @@ from itertools import count
 from PIL import Image, ImageTk
 
 from exceptions import NoImageFound
-from constants import FILENAME_FORMAT_PREFIX, ASSETS_DIR, SPACY_DIR
+from constants import (
+    FILENAME_FORMAT_PREFIX, ASSETS_DIR, SPACY_DIR, WIKIPEDIA
+)
 
 
 log = logging.getLogger(__name__)
@@ -73,3 +80,33 @@ def up_list(_list:list[str]) -> list[str]:
     except TypeError:
         # Is this pythonic?
         raise TypeError('Items in list must be of type str')
+
+def get_pipeline(pipeline:str):
+    return spacy.load(pipeline)
+
+def web_scrape(
+        url:str, search_for:str='p', remove_linebreak:bool=False
+    ) -> dict:
+    """Returns scraped web content"""
+    result = requests.get(url)
+    soup = BeautifulSoup(result.content, 'html.parser')
+    content = [item.get_text() for item in soup.find_all(search_for)]
+    if remove_linebreak:
+        content = [item.replace('\n', '') for item in content]
+    if url.startswith(WIKIPEDIA):
+        title = soup.find(id='firstHeading').contents[0]
+    else:
+        title = url
+    return {'title': title, 'content': content}
+
+def parse_string_content(pipeline:Language, string:str):
+    """Returns parsed string content as [word, entity, pos]"""
+    document = pipeline(string)
+    parsed = np.array(
+        [[token.text, token.ent_type_, token.pos_] \
+        for token in document]
+    )
+    # Replace empty strings with 'N/A' in the entitiy
+    # column.
+    parsed[np.where(parsed=='')] = 'N/A'
+    return parsed.tolist()

@@ -9,9 +9,11 @@ from requests import ConnectionError as RequestsConnectionError
 
 from cfg import ConfigManager
 from exceptions import NotWikiPage
-from process import get_data_from_url, parse_string, group_entities
 from style import Style
-from utils import image, export_to_csv, up_list
+from utils import (
+    image, export_to_csv, up_list, web_scrape, parse_string_content,
+    get_pipeline
+)
 from constants import EVEN, ODD
 
 log = logging.getLogger(__name__)
@@ -135,6 +137,7 @@ class AddressBar(ttk.Frame):
             if self.settings.auto_save.get():
                 self.master.notebook.results_tab.save()
 
+        self.update_gui_state(searching=True)
         search_thread = Thread(target=self.search)
         search_thread.daemon = True
         search_thread.start()
@@ -145,18 +148,8 @@ class AddressBar(ttk.Frame):
         url = self.search_term.get()
         log.debug(f'starting search for: {url}')
         # update gui to reflect searching in progress
-        self.update_gui_state(searching=True)
         try:
-            data = get_data_from_url(url)
-        except NotWikiPage:  # remove this exception to allow non-wikis
-            log.error('cancelled search - entered url is invalid')
-            self.update_gui_state(searching=False)
-            messagebox.showerror(
-                title='Search Cancelled',
-                message='The URL entered does not lead to a ' \
-                        'wikipedia article. Try Again.'
-            )
-            return
+            data = web_scrape(url, remove_linebreak=True)
         except RequestsConnectionError:
             log.error(f"couldn't establish connection with {url}")
             self.update_gui_state(searching=False)
@@ -167,13 +160,15 @@ class AddressBar(ttk.Frame):
                         "try again."
             )
             return
-        # parse the data
-        title = f'Wikipedia - {data["title"]}'
-        self.master.notebook.results_tab.head_title.set(title)
-        data = parse_string("".join(data['content']))
-        # Group Entities
-        if self.settings.group_entities.get():
-            data = group_entities(data)
+        self.master.notebook.results_tab.head_title.set(data['title'])
+        nlp = get_pipeline('en_core_web_sm')
+        data = parse_string_content(
+            pipeline=nlp,
+            string="".join(data['content'])
+        )
+        # # Group Entities
+        # if self.settings.group_entities.get():
+        #     data = group_entities(data)
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
         # set flag to inform app that the thread has finished
@@ -186,7 +181,7 @@ class AddressBar(ttk.Frame):
         log.debug(f'Updating address bar GUI. Disabled = {searching}')
         if searching:
             self.progress_bar.pack(self.search_bar.pack_info())
-            self.progress_bar.start(15)
+            self.progress_bar.start(10)
             self.search_bar.pack_forget()
             self.search_btn.config(state='disabled')
             return
