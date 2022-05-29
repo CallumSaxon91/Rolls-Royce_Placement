@@ -59,11 +59,11 @@
             "map": {
                 "foreground": [["pressed", "foreground-primary"]],
                 "background": [
-                    ["pressed", "background-secondary"],
+                    ["pressed", "background-accent_1"],
                     ["active", "background-tertiary"]
                 ],
                 "lightcolor": [
-                    ["pressed", "background-secondary"],
+                    ["pressed", "background-accent_1"],
                     ["active", "background-tertiary"]
                 ],
                 "darkcolor": [
@@ -71,7 +71,7 @@
                     ["active", "background-tertiary"]
                 ],
                 "focuscolor": [
-                    ["pressed", "background-secondary"],
+                    ["pressed", "background-accent_1"],
                     ["active", "background-tertiary"]
                 ],
                 "relief": [["pressed", "sunken"]]
@@ -111,7 +111,8 @@
                 "background": "background-primary",
                 "focuscolor": "background-primary",
                 "relief": "flat",
-                "borderwidth": 0
+                "borderwidth": 0,
+                "padding": [3, 0, 3, 0]
             },
             "map": {
                 "background": [["pressed", "background-primary"]],
@@ -130,6 +131,11 @@
                 "insertcolor": "foreground-primary",
                 "padding": [3, 0, 3, 0],
                 "borderwidth": 1
+            },
+            "map": {
+                "fieldbackground": [
+                    ["active", "background-tertiary"]
+                ]
             }
         },
         "Horizontal.TProgressbar": {
@@ -161,7 +167,9 @@
             "configure": {
                 "foreground": "foreground-primary",
                 "background": "background-primary",
-                "focuscolor": "background-primary"
+                "focuscolor": "background-primary",
+                "indicatorforeground": "foreground-primary",
+                "indicatorbackground": "background-primary"
             }
         },
         "SettingWidget.TCheckbutton": {
@@ -175,7 +183,9 @@
             "configure": {
                 "foreground": "foreground-primary",
                 "background": "background-primary",
-                "focuscolor": "background-primary"
+                "focuscolor": "background-primary",
+                "indicatorforeground": "foreground-primary",
+                "indicatorbackground": "background-primary"
             }
         },
         "SettingWidget.TRadiobutton": {
@@ -235,6 +245,11 @@
             "map": {
                 "foreground": [["selected", "white"]],
                 "background": [["selected", "foreground-positive"]]
+            }
+        },
+        "TSeparator": {
+            "configure": {
+                "background": "background-accent_3"
             }
         }
     }
