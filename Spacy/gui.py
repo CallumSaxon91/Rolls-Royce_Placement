@@ -594,7 +594,7 @@ class SettingWidget(ttk.Frame):
         ).grid(column=0, row=0, sticky='w', padx=(0, 5))
         ttk.Label(
             self, text=desc, style='SettingWidgetDesc.TLabel'
-        ).grid(column=0, columnspan=2, row=2, sticky='w')
+        ).grid(column=0, columnspan=10, row=2, sticky='w')
         var.trace_add('write', self.on_update)
         self.var = var
 
@@ -628,10 +628,11 @@ class RadioSetting(SettingWidget):
     ):
         super().__init__(master, label, desc, var, **kw)
         for col, opt in enumerate(options):
+            text = f' {opt.title()}'  # add space as margin
             ttk.Radiobutton(
-                self, text=opt.title(), value=opt, variable=var,
+                self, text=text, value=opt, variable=var,
                 style='SettingWidget.TRadiobutton'
-            ).grid(column=col, columnspan=1, row=1, sticky='e')
+            ).grid(column=col+1, columnspan=1, row=0, sticky='e')
 
 
 class TextSetting(SettingWidget):
