@@ -1,6 +1,6 @@
 import logging
 import os
-import numpy as np
+import spacy
 import tkinter as tk
 from threading import Thread
 from tkinter import filedialog, messagebox, ttk
@@ -8,8 +8,6 @@ from appdirs import AppDirs
 from requests import ConnectionError as RequestsConnectionError
 
 from cfg import ConfigManager
-from exceptions import NotWikiPage
-from process import get_data_from_url, parse_string, group_entities
 from style import Style
 from utils import image, export_to_csv, up_list
 from constants import EVEN, ODD
@@ -25,22 +23,30 @@ class AppRoot(tk.Tk):
         self.app_name = app_name
         self.dirs = dirs
         self.cfg = cfg
-        # setup root window
+        # Setup root window
         self.title(app_name)
         self.geometry('700x400')
         self.iconbitmap(
             os.path.dirname(__file__) + r'\assets\icon.ico'
         )
-        #self.resizable(False, False)
-        # create and show controls
+        # Create and show controls
         self.notebook = Notebook(self)
         self.addbar = AddressBar(self)
         self.addbar.pack(fill='x')
         self.notebook.pack(fill='both', expand=True)
-        # setup style
-        # style must be setup after creating the controls because some
-        # widgets can only be stylized after creation.
+        # Get spacy pipeline
+        self.load_pipeline()
+        # Style must be setup after creating the controls because
+        # non-ttk widgets can only be customized after they have been
+        # created.
         self.style = Style(self)
+
+    def load_pipeline(self):
+        def get():
+            self.pipeline = spacy.load('en_core_web_sm')
+        thread = Thread(target=get)
+        thread.daemon = True
+        thread.start()
 
 
 class ImageButton(ttk.Button):

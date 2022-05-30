@@ -2,7 +2,7 @@ import json
 import logging
 from tkinter import ttk, font as tkfont
 
-from constants import THEME_DIR
+from constants import THEME_PATH
 
 
 log = logging.getLogger(__name__)
@@ -60,12 +60,12 @@ class Style(ttk.Style):
 
     def _load_colour_file(self, colours_filename:str):
         with open(
-            f'{THEME_DIR}/{colours_filename}', 'r'
+            f'{THEME_PATH}/{colours_filename}', 'r'
         ) as colour_file:
             colours = json.load(colour_file)
         return colours
 
     def _load_theme_file(self, theme_filename:str):
-        with open(f'{THEME_DIR}/{theme_filename}', 'r') as theme_file:
+        with open(f'{THEME_PATH}/{theme_filename}', 'r') as theme_file:
             theme = json.load(theme_file)
         return theme
