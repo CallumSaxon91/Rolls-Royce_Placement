@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 from appdirs import AppDirs
 
-from .widgets import Notebook
+from .widgets import Notebook, AddressBar
 from config import ConfigManager
 from constants import ASSETS_PATH
 
@@ -19,8 +19,8 @@ class Root(tk.Tk):
         self.iconbitmap(f'{ASSETS_PATH}/icon.ico')
         # Create and show controls
         self.notebook = Notebook(self)
-        #self.addbar = AddressBar(self)
-        #self.addbar.pack(fill='x')
+        self.addbar = AddressBar(self)
+        self.addbar.pack(fill='x')
         self.notebook.pack(fill='both', expand=True)
         
 

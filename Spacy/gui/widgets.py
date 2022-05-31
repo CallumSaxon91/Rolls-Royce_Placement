@@ -4,7 +4,7 @@ from tkinter import ttk, filedialog
 from threading import Thread
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
-from utils import image, up_list
+from utils import image, up_list, web_scrape
 from constants import ODD, EVEN
 
 
@@ -115,16 +115,7 @@ class AddressBar(ttk.Frame):
         # update gui to reflect searching in progress
         self.update_gui_state(searching=True)
         try:
-            data = web_(url)
-        except NotWikiPage:  # remove this exception to allow non-wikis
-            log.error('cancelled search - entered url is invalid')
-            self.update_gui_state(searching=False)
-            messagebox.showerror(
-                title='Search Cancelled',
-                message='The URL entered does not lead to a ' \
-                        'wikipedia article. Try Again.'
-            )
-            return
+            data = web_scrape(url)
         except RequestsConnectionError:
             log.error(f"couldn't establish connection with {url}")
             self.update_gui_state(searching=False)
