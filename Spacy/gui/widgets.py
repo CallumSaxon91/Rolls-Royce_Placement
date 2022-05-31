@@ -1,10 +1,11 @@
 import logging
+import spacy
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import ttk, filedialog, messagebox
 from threading import Thread
 from requests.exceptions import ConnectionError as RequestsConnectionError
 
-from utils import image, up_list, web_scrape
+from utils import image, up_list, web_scrape, parse_string_content
 from constants import ODD, EVEN
 
 
@@ -129,10 +130,10 @@ class AddressBar(ttk.Frame):
         # parse the data
         title = f'Wikipedia - {data["title"]}'
         self.master.notebook.results_tab.head_title.set(title)
-        data = parse_string("".join(data['content']))
-        # Group Entities
-        if self.settings.group_entities.get():
-            data = group_entities(data)
+        data = parse_string_content(
+            pipeline=spacy.load('en_core_web_sm'),
+            string="".join(data['content'])
+        )
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
         # set flag to inform app that the thread has finished
