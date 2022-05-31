@@ -74,7 +74,7 @@ def web_scrape(
     content = [item.get_text() for item in soup.find_all(search_for)]
     if remove_linebreak:
         content = [item.replace('\n', '') for item in content]
-    if url.startswith('https://www.wikipedia.org/wiki/'):
+    if url.startswith('https://en.wikipedia.org/wiki/'):
         title = soup.find(id='firstHeading').contents[0]
     else:
         title = url
