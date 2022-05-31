@@ -96,6 +96,18 @@ class AddressBar(ttk.Frame):
 
     def on_search_btn(self, event:tk.Event=None):
         """Search button has been clicked"""
+        # Pipeline loads on a seperate thread so it
+        # is important to have this check.
+        if not hasattr(self.master, 'pipeline'):
+            messagebox.showinfo(
+                title='Loading Pipeline',
+                message='Cannot search right now. Please wait a ' \
+                        'moment to allow the necessary modules to ' \
+                        'load. This should not take longer than a ' \
+                        'few seconds.'
+            )
+            return
+
         def check_finished():
             if self.in_search_state:
                 self.after(1000, check_finished)
@@ -131,7 +143,7 @@ class AddressBar(ttk.Frame):
         title = f'Wikipedia - {data["title"]}'
         self.master.notebook.results_tab.head_title.set(title)
         data = parse_string_content(
-            pipeline=spacy.load('en_core_web_sm'),
+            pipeline=self.master.pipeline,
             string="".join(data['content'])
         )
         # update gui to show searching has finished
