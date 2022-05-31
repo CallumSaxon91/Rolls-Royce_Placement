@@ -3,6 +3,7 @@ from tkinter import ttk
 from appdirs import AppDirs
 
 from .widgets import Notebook, AddressBar
+from .style import Style
 from config import ConfigManager
 from constants import ASSETS_PATH
 
@@ -22,6 +23,8 @@ class Root(tk.Tk):
         self.addbar = AddressBar(self)
         self.addbar.pack(fill='x')
         self.notebook.pack(fill='both', expand=True)
+        # Initialize style
+        self.style = Style(self)
         
 
     def start(self):
