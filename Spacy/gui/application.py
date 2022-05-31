@@ -1,3 +1,4 @@
+import logging
 import tkinter as tk
 from tkinter import ttk
 from appdirs import AppDirs
@@ -8,6 +9,9 @@ from .widgets import Notebook, AddressBar
 from .style import Style
 from config import ConfigManager
 from constants import ASSETS_PATH
+
+
+log = logging.getLogger(__name__)
 
 
 class Root(tk.Tk):
@@ -29,11 +33,13 @@ class Root(tk.Tk):
         self.style = Style(self)
 
     def start(self):
-        self.load_spacy_pipeline()
+        """Start the GUI application"""
+        self.load_spacy_pipeline(name='en_core_web_sm')
         self.mainloop()
 
-    def load_spacy_pipeline(self, name:str='en_core_web_sm'):
+    def load_spacy_pipeline(self, name):
         """Sets new attr to Root as pipeline"""
+        log.debug('Loading spacy pipeline')
         def load():
             self.pipeline = get_pipe(name)
         # Load pipeline on a separate thread because it can
