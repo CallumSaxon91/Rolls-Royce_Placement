@@ -2,6 +2,7 @@ import logging
 import tkinter as tk
 from tkinter import ttk, filedialog
 from threading import Thread
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from utils import image, up_list
 from constants import ODD, EVEN
