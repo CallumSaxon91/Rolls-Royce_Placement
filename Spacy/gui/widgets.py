@@ -403,7 +403,6 @@ class SettingWidget(ttk.Frame):
     def on_update(self, *args):
         log.debug(f'Updating setting widget {self}')
         cfg = self.master.master.master.master.cfg  # this is just bad
-        cfg.update('settings', self.var)
         try:
             cfg.update('settings', self.var)
         except AttributeError:
