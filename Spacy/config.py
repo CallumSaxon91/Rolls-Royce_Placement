@@ -1,3 +1,4 @@
+import logging
 from configparser import ConfigParser
 from appdirs import AppDirs
 from os.path import exists
@@ -5,6 +6,9 @@ from distutils.util import strtobool
 from tkinter import StringVar, BooleanVar
 
 from constants import OUTPUT_PATH
+
+
+log = logging.getLogger(__name__)
 
 
 # TODO: this should not be stored here
@@ -69,7 +73,7 @@ class ConfigManager(ConfigParser):
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
-        self.validate(True)
+        self.validate()
         self.read(self.fp)
 
     def validate(self, force_restore:bool=False):
@@ -93,3 +97,12 @@ class ConfigManager(ConfigParser):
             var.set(value)
             variables.append((key, var))
         return variables
+
+    def update(self, section, variable):
+        value = variable.get()
+        self.set(section, str(variable), str(value))
+        with open(self.fp, 'w') as file:
+            self.write(file)
+        log.debug(
+            f'Updated config: [{section}]-[{variable}]-[{value}]'
+        )
