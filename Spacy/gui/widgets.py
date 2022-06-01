@@ -113,6 +113,9 @@ class AddressBar(ttk.Frame):
                 self.after(1000, check_finished)
                 return
             self.populate_fields(self.data)
+            self.master.notebook.contents_tab.content.set(
+                "".join([f'{row[0]} ' for row in self.data])
+            )
             if self.settings.auto_save.get():
                 self.master.notebook.results_tab.save()
 
@@ -296,9 +299,11 @@ class Notebook(ttk.Notebook):
         self.legend_tab = LegendTab(self)
         self.settings_tab = SettingsTab(self)
         self.results_tab = ResultsTab(self)
+        self.contents_tab = ContentTab(self)
         self.help_tab = HelpTab(self)
         # Show notebook tabs
         self.add(self.results_tab, text='Results')
+        self.add(self.contents_tab, text='Contents')
         self.add(self.legend_tab, text='Legend')
         self.add(self.settings_tab, text='Settings')
         # self.add(self.help_tab, text='Help')
@@ -372,11 +377,28 @@ class ResultsTab(NotebookTab):
         # export_to_csv(data, fp)
 
 
+class ContentTab(NotebookTab):
+    def __init__(self, master, title='Content', desc=''):
+        log.debug('Initializing content tab')
+        super().__init__(master, title=title)
+        self.content = tk.StringVar()
+        self.content.trace_add(
+            'write', lambda *_: self.write_to_output_field()
+        )
+        self.input_field = tk.Text(self)
+        self.input_field.place(relw=1, relh=1, anchor='nw')
+
+    def write_to_output_field(self):
+        content = self.content.get()
+        self.input_field.delete('1.0', 'end')
+        self.input_field.insert('1.0', content)
+
+
 class LegendTab(NotebookTab):
     """Contains widgets explaining spacy lingo stuff"""
     def __init__(self, master, title='Legend', desc=''):
         log.debug('Initializing legend tab')
-        super().__init__(master, title='Legend',)
+        super().__init__(master, title=title,)
         self.tree = CustomTreeView(
             self, headings=('entities', '', 'parts of speech', '')
         )
