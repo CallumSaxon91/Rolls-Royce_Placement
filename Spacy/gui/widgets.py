@@ -59,18 +59,19 @@ class AddressBar(ttk.Frame):
         )
         # Open file button
         self.file_btn = ImageButton(
-            self, img_fn=f'import_{colour}.png', img_size=(20, 18),
-            command=self.on_file_btn, style='AddressBarImg.TButton'
+            self, img_fn=f'import_{colour}.png', img_size=(18, 16),
+            text='Parse File', compound='right',
+            command=self.on_file_btn, style='Compound.TButton'
         )
         self.file_btn.pack(side='right', padx=5)
-        sep = ttk.Separator(self, orient='vertical')
         # Save file button
-        sep.pack(side='right', before=self.file_btn, fill='y', pady=5)
+
         self.save_btn = ImageButton(
-            self, img_fn=f'save_{colour}.png', img_size=(20, 20),
-            command=self.on_save_btn, style='AddressBarImg.TButton'
+            self, img_fn=f'save_{colour}.png', img_size=(18, 16),
+            text='Export', compound='right',
+            command=self.on_save_btn, style='Compound.TButton'
         )
-        self.save_btn.pack(side='right', padx=5, before=sep)
+        self.save_btn.pack(side='right', padx=(5, 0))
 
     def on_file_btn(self):
         """File button has been clicked"""
@@ -444,7 +445,7 @@ class RadioSetting(SettingWidget):
             ttk.Radiobutton(
                 self, text=opt.title(), value=opt, variable=var,
                 style='SettingWidget.TRadiobutton'
-            ).grid(column=col, columnspan=1, row=1, sticky='e')
+            ).grid(column=col, columnspan=1, row=0, sticky='e')
 
 
 class TextSetting(SettingWidget):
