@@ -1,12 +1,13 @@
 import logging
-import spacy
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, messagebox
 from threading import Thread
 from requests.exceptions import ConnectionError as RequestsConnectionError
+from urllib.parse import urlparse
 
 from utils import image, up_list, web_scrape, parse_string_content
 from constants import ODD, EVEN
+from exceptions import PipelineNotLoaded
 
 
 log = logging.getLogger(__name__)
@@ -27,146 +28,146 @@ class ImageButton(ttk.Button):
 
 class AddressBar(ttk.Frame):
     """Tkinter frame that contains controls used to lookup web url"""
-    in_search_state: bool = False
+    active_state: bool = False
 
     def __init__(self, master):
         log.debug('Initializing address bar widget')
         super().__init__(master, style='AddressBar.TFrame')
         self.settings = self.master.notebook.settings_tab
-        colour = self.settings.colour_mode.get()
-        self.search_term = tk.StringVar(
+        # Begin parsing process button
+        self.begin_btn = ttk.Button(
+            self, text='  Start  ', style='AddressBar.TButton',
+            command=self.start_process
+        )
+        self.begin_btn.pack(side='left', fill='y', padx=5, pady=5)
+        # Value in the address bar input field
+        self.address = tk.StringVar(
             value=self.settings.default_url.get()
         )
-        # Search button
-        self.search_btn = ttk.Button(
-            self, text='Search', style='AddressBar.TButton',
-            command=self.on_search_btn
+        # Input field can contain url or file path
+        self.input_field = ttk.Entry(
+            self, style='AddressBar.TEntry', 
+            textvariable=self.address
         )
-        self.search_btn.pack(side='left', fill='y', padx=5, pady=5)
-        # Search bar aka address bar
-        self.search_bar = ttk.Entry(
-            self, style='AddressBar.TEntry',
-            textvariable=self.search_term
-        )
-        self.search_bar.pack(
+        self.input_field.pack(
             side='left', fill='both', expand=True, pady=5
         )
-        self.search_bar.bind('<Return>', self.on_search_btn)
-        # Progress bar
+        # Make the <Enter> key trigger the begin btn
+        self.input_field.bind(
+            '<Return>', lambda e: self.begin_btn.invoke()
+        )
+        # Progress bar will appear over the input field when needed
         self.progress_bar = ttk.Progressbar(
             orient='horizontal',
             mode='indeterminate',
         )
-        # Open file button
-        self.file_btn = ImageButton(
-            self, img_fn=f'import_{colour}.png', img_size=(18, 16),
-            text='Parse File', compound='right',
-            command=self.on_file_btn, style='Compound.TButton'
+        # Import/Export buttons
+        # Import: open file and parse data
+        # Export: save result to output file
+        colour = self.settings.colour_mode.get()
+        img_size = (18, 16)
+        compound = 'right'
+        style='Compound.TButton'
+        self.import_btn = ImageButton(
+            self, img_fn=f'import_{colour}.png', img_size=img_size,
+            text='Parse File', compound=compound,
+            command=self.import_file, style=style
         )
-        self.file_btn.pack(side='right', padx=5)
-        # Save file button
-
-        self.save_btn = ImageButton(
-            self, img_fn=f'save_{colour}.png', img_size=(18, 16),
-            text='Export', compound='right',
-            command=self.on_save_btn, style='Compound.TButton'
+        self.import_btn.pack(side='right', padx=(5, 0))
+        self.export_btn = ImageButton(
+            self, img_fn=f'save_{colour}.png', img_size=img_size,
+            text='Export', compound=compound,
+            command=self.export_results, style=style
         )
-        self.save_btn.pack(side='right', padx=(5, 0))
+        self.export_btn.pack(
+            side='right', padx=5, before=self.import_btn
+        )
 
-    def on_file_btn(self):
+    def import_file(self):
         """File button has been clicked"""
-        raise NotImplementedError('This feature has not been implemented yet')
-        ok = messagebox.askokcancel(
-            title='Open File',
-            message = 'You can use a text file as input data to ' \
-                    'parse. The file can contain urls separated by ' \
-                    ' a line break or a string of characters to be ' \
-                    'parsed.'
-        )
-        if not ok: return
-        fp = filedialog.askopenfilename(
-            filetypes=(('Text File', '*.txt'),)
-        )
-        self.search_term.set(fp)
+        fp, _ = self.master.import_string()
+        self.address.set(fp)
 
-    def on_save_btn(self):
-        """Save button has been clicked"""
-        fp = filedialog.askdirectory(mustexist=True)
-        if not fp: return
-        self.master.notebook.results_tab.save(fp)
+    def export_results(self):
+        """Export results to output file"""
+        self.master.export_results()
 
-    def on_search_btn(self, event:tk.Event=None):
-        """Search button has been clicked"""
+    def on_connection_error(self, url:str):
+        log.error(f"couldn't establish connection with {url}")
+        self.update_gui_state(searching=False)
+        messagebox.showerror(
+            title='Connection Error',
+            message="Couldn't establish an internet connection. " \
+                    "Please check your internet connection and " \
+                    "try again."
+        )
+
+    def start_process(self, event:tk.Event=None):
+        """Begin button has been clicked"""
         # Pipeline loads on a seperate thread so it
         # is important to have this check.
         if not hasattr(self.master, 'pipeline'):
-            messagebox.showinfo(
-                title='Loading Pipeline',
-                message='Cannot search right now. Please wait a ' \
-                        'moment to allow the necessary modules to ' \
-                        'load. This should not take longer than a ' \
-                        'few seconds.'
-            )
-            return
-
+            raise PipelineNotLoaded
         def check_finished():
-            if self.in_search_state:
+            if self.active_state:
                 self.after(1000, check_finished)
                 return
             self.populate_fields(self.data)
             if self.settings.auto_save.get():
                 self.master.notebook.results_tab.save()
 
+        # Update GUI
+        self.in_search_state = True
         self.update_gui_state(searching=True)
-        search_thread = Thread(target=self.search)
+        # Create and start process on separate thread
+        search_thread = Thread(target=self.process_data)
         search_thread.daemon = True
         search_thread.start()
         self.after(1000, check_finished)
 
-    def search(self):
-        self.in_search_state = True
-        url = self.search_term.get()
-        log.debug(f'starting search for: {url}')
-        # update gui to reflect searching in progress
-        try:
-            data = web_scrape(url, remove_linebreak=True)
-        except RequestsConnectionError:
-            log.error(f"couldn't establish connection with {url}")
-            self.update_gui_state(searching=False)
-            messagebox.showerror(
-                title='Connection Error',
-                message="Couldn't establish an internet connection. " \
-                        "Please check your internet connection and " \
-                        "try again."
-            )
-            return
-        # parse the data
-        title = f'Wikipedia - {data["title"]}'
+    def process_data(self):
+        address = self.address.get()
+        log.debug(f'Processing data from {address}')
+        absolute_url = bool(urlparse(address).netloc)
+        if absolute_url:
+            # Get content from the web
+            try:
+                data = web_scrape(address, remove_linebreak=True)
+                title, data = data['title'], "".join(data['content'])
+            except RequestsConnectionError:
+                self.on_connection_error(address)
+                return
+        else:
+            # Get content from a local file
+            with open(address, 'r') as file:
+                title = address.split('/')[-1]
+                data = file.read()
+            title = title.split('.')[0].replace('_', ' ').title()
         self.master.notebook.results_tab.head_title.set(title)
         data = parse_string_content(
             pipeline=self.master.pipeline,
-            string="".join(data['content'])
+            string=data
         )
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
         # set flag to inform app that the thread has finished
         self.data = data
-        self.in_search_state = False
+        self.active_state = False
         log.debug('Search complete')
 
     def update_gui_state(self, searching:bool):
         """Enables or disables addressbar widgets"""
         log.debug(f'Updating address bar GUI. Disabled = {searching}')
         if searching:
-            self.progress_bar.pack(self.search_bar.pack_info())
+            self.progress_bar.pack(self.input_field.pack_info())
             self.progress_bar.start(10)
-            self.search_bar.pack_forget()
-            self.search_btn.config(state='disabled')
+            self.input_field.pack_forget()
+            self.begin_btn.config(state='disabled')
             return
-        self.search_bar.pack(self.progress_bar.pack_info())
+        self.input_field.pack(self.progress_bar.pack_info())
         self.progress_bar.pack_forget()
         self.progress_bar.stop()
-        self.search_btn.config(state='normal')
+        self.begin_btn.config(state='normal')
 
     def populate_fields(self, data:list[tuple]):
         """output results to gui"""
