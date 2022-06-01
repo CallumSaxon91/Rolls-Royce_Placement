@@ -50,7 +50,7 @@ class Root(tk.Tk):
         thread.daemon = True
         thread.start()
 
-    def import_string(self) -> str:
+    def import_string(self) -> tuple[str, str]:
         """Import a string from a text file and return it"""
         log.debug('Importing string from text file')
         # Open existing file to read from
@@ -63,7 +63,7 @@ class Root(tk.Tk):
         data = file.read()
         file.close()
         log.debug('Successfully import string from text file')
-        return data
+        return file.name, data
 
     def export_results(self):
         """Export results from results tab to file"""
