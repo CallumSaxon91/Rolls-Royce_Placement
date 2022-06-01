@@ -74,13 +74,10 @@ def web_scrape(
     content = [item.get_text() for item in soup.find_all(search_for)]
     if remove_linebreak:
         content = [item.replace('\n', '') for item in content]
-    if url.startswith('https://en.wikipedia.org/wiki/'):
-        title = soup.find(id='firstHeading').contents[0]
-    else:
-        title = url
+    title = soup.title.string
     return {'title': title, 'content': content}
 
-def parse_string_content(pipeline:Language, string:str):
+def parse_string_content(pipeline:Language, string:str) -> list[list]:
     """Returns parsed string content as [word, entity, pos]"""
     document = pipeline(string)
     parsed = np.array(
@@ -89,5 +86,8 @@ def parse_string_content(pipeline:Language, string:str):
     )
     # Replace empty strings with 'N/A' in the entitiy
     # column.
-    parsed[np.where(parsed=='')] = 'N/A'
+    try:
+        parsed[np.where(parsed=='')] = 'N/A'
+    except ValueError:
+        pass
     return parsed.tolist()
