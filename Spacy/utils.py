@@ -1,9 +1,6 @@
-import os
-import csv
 import logging
 import requests
 import numpy as np
-import spacy
 from spacy.language import Language
 from bs4 import BeautifulSoup
 from pathlib import Path
@@ -12,13 +9,12 @@ from typing import TextIO
 from itertools import count
 from PIL import Image, ImageTk
 
-from exceptions import NoImageFound
-from constants import (
-    FILENAME_FORMAT_PREFIX, ASSETS_DIR, SPACY_DIR, WIKIPEDIA
-)
+from constants import ASSETS_PATH, PATH, FILENAME_PREFIX_FORMAT
+from exceptions import ImageNotFound
 
 
 log = logging.getLogger(__name__)
+
 
 def validate_dirs(dirs) -> None:
     """Creates app directories if they don't already exist."""
@@ -29,12 +25,12 @@ def validate_dirs(dirs) -> None:
     # create directories with the project files
     for folder_name in ('output', 'assets', 'theme'):
         Path(
-            f'{SPACY_DIR}\{folder_name}'
+            f'{PATH}\{folder_name}'
         ).mkdir(parents=True, exist_ok=True)
 
 def open_new_file(dir:str, prefix:str='', ext:str='txt') -> TextIO:
     """Create a new file with a unique filename"""
-    timestamp = datetime.now().strftime(FILENAME_FORMAT_PREFIX)
+    timestamp = datetime.now().strftime(FILENAME_PREFIX_FORMAT)
     filenames = (
             f'{prefix}_{timestamp}.txt' if i == 0 else \
             f'{prefix}_{timestamp}_{i}.{ext}' for i in count()
@@ -46,28 +42,16 @@ def open_new_file(dir:str, prefix:str='', ext:str='txt') -> TextIO:
             return (Path(path).open('x', encoding='utf-8'))
         except FileExistsError:
             continue
-        
+
 def image(filename:str, size:tuple[int, int]) -> ImageTk.PhotoImage:
     """returns PhotoImage object obtained from file path"""
-    fp = f'{ASSETS_DIR}\{filename}'
-    if not os.path.exists(fp):
+    fp = f'{ASSETS_PATH}\{filename}'
+    if not Path(fp).exists():
         log.error(f'could not find image at fp: {fp}')
-        raise NoImageFound
+        raise ImageNotFound
     im = Image.open(fp)
     im = im.resize(size, Image.ANTIALIAS)
     return ImageTk.PhotoImage(im)
-
-def export_to_csv(data:list[list], fp:str):
-    """Export 2d array to list"""
-    with open(fp, 'w', newline='') as file:
-        writer = csv.writer(file, delimiter=',')
-        writer.writerows(data)
-    log.debug(f'Finished exporting data to csv file at {fp}')
-
-def import_from_csv(fp:str) -> list:
-    with open(fp, 'r', newline='') as file:
-        rows = csv.read(file, delimiter=',')
-    return rows
 
 def up_list(_list:list[str]) -> list[str]:
     """
@@ -81,9 +65,6 @@ def up_list(_list:list[str]) -> list[str]:
         # Is this pythonic?
         raise TypeError('Items in list must be of type str')
 
-def get_pipeline(pipeline:str):
-    return spacy.load(pipeline)
-
 def web_scrape(
         url:str, search_for:str='p', remove_linebreak:bool=False
     ) -> dict:
@@ -93,7 +74,7 @@ def web_scrape(
     content = [item.get_text() for item in soup.find_all(search_for)]
     if remove_linebreak:
         content = [item.replace('\n', '') for item in content]
-    if url.startswith(WIKIPEDIA):
+    if url.startswith('https://en.wikipedia.org/wiki/'):
         title = soup.find(id='firstHeading').contents[0]
     else:
         title = url

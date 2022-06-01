@@ -1,48 +1,15 @@
 import logging
-import os
-import numpy as np
+import spacy
 import tkinter as tk
+from tkinter import ttk, filedialog, messagebox
 from threading import Thread
-from tkinter import filedialog, messagebox, ttk
-from appdirs import AppDirs
-from requests import ConnectionError as RequestsConnectionError
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
-from cfg import ConfigManager
-from exceptions import NotWikiPage
-from style import Style
-from utils import (
-    image, export_to_csv, up_list, web_scrape, parse_string_content,
-    get_pipeline
-)
-from constants import EVEN, ODD
+from utils import image, up_list, web_scrape, parse_string_content
+from constants import ODD, EVEN
+
 
 log = logging.getLogger(__name__)
-
-
-class AppRoot(tk.Tk):
-    """Root of the application. Inherits from tkinter.Tk"""
-    def __init__(self, app_name:str, dirs:AppDirs, cfg:ConfigManager):
-        log.debug('Initializing main GUI window')
-        super().__init__()
-        self.app_name = app_name
-        self.dirs = dirs
-        self.cfg = cfg
-        # setup root window
-        self.title(app_name)
-        self.geometry('700x400')
-        self.iconbitmap(
-            os.path.dirname(__file__) + r'\assets\icon.ico'
-        )
-        #self.resizable(False, False)
-        # create and show controls
-        self.notebook = Notebook(self)
-        self.addbar = AddressBar(self)
-        self.addbar.pack(fill='x')
-        self.notebook.pack(fill='both', expand=True)
-        # setup style
-        # style must be setup after creating the controls because some
-        # widgets can only be stylized after creation.
-        self.style = Style(self)
 
 
 class ImageButton(ttk.Button):
@@ -129,6 +96,18 @@ class AddressBar(ttk.Frame):
 
     def on_search_btn(self, event:tk.Event=None):
         """Search button has been clicked"""
+        # Pipeline loads on a seperate thread so it
+        # is important to have this check.
+        if not hasattr(self.master, 'pipeline'):
+            messagebox.showinfo(
+                title='Loading Pipeline',
+                message='Cannot search right now. Please wait a ' \
+                        'moment to allow the necessary modules to ' \
+                        'load. This should not take longer than a ' \
+                        'few seconds.'
+            )
+            return
+
         def check_finished():
             if self.in_search_state:
                 self.after(1000, check_finished)
@@ -160,15 +139,13 @@ class AddressBar(ttk.Frame):
                         "try again."
             )
             return
-        self.master.notebook.results_tab.head_title.set(data['title'])
-        nlp = get_pipeline('en_core_web_sm')
+        # parse the data
+        title = f'Wikipedia - {data["title"]}'
+        self.master.notebook.results_tab.head_title.set(title)
         data = parse_string_content(
-            pipeline=nlp,
+            pipeline=self.master.pipeline,
             string="".join(data['content'])
         )
-        # # Group Entities
-        # if self.settings.group_entities.get():
-        #     data = group_entities(data)
         # update gui to show searching has finished
         self.update_gui_state(searching=False)
         # set flag to inform app that the thread has finished
@@ -308,11 +285,251 @@ class CustomTreeView(ttk.Treeview):
             self.update_tree(data=self.data)
 
 
+class Notebook(ttk.Notebook):
+    """Tkinter frame that ouputs results from spacy"""
+    def __init__(self, master:tk.Tk):
+        log.debug('Initializing notebook')
+        super().__init__(master)
+        # Create notebook tabs
+        self.legend_tab = LegendTab(self)
+        self.settings_tab = SettingsTab(self)
+        self.results_tab = ResultsTab(self)
+        self.help_tab = HelpTab(self)
+        # Show notebook tabs
+        self.add(self.results_tab, text='Results')
+        self.add(self.legend_tab, text='Legend')
+        self.add(self.settings_tab, text='Settings')
+        # self.add(self.help_tab, text='Help')
+
+
+class NotebookTab(ttk.Frame):
+    def __init__(self, notebook, title:str, desc:str='', *args, **kw):
+        super().__init__(notebook, *args, **kw)
+        self.head_title = tk.StringVar(value=title)
+        self.head_desc = tk.StringVar(value=desc)
+        self.head = ttk.Frame(self, style='Head.TFrame')
+        self.head.pack(side='top', fill='x')
+        ttk.Label(
+            self.head, style='HeadTitle.TLabel',
+            textvariable=self.head_title
+        ).pack(side='left', padx=5, pady=5)
+        ttk.Label(
+            self.head, style='Head.TLabel',
+            textvariable=self.head_desc
+        ).pack(side='left', padx=(0, 5), pady=5)
+
+
+class ResultsTab(NotebookTab):
+    """Tkinter ttk Frame containing output for parsed data"""
+    def __init__(self, master):
+        log.debug('Initializing results tab')
+        super().__init__(master, title='Results')
+        self.root = master.master
+        colour = master.settings_tab.colour_mode.get()
+        # Create filter button widget
+        ImageButton(
+            self.head, img_fn=f'filter_{colour}.png', img_size=(18, 16),
+            text='Filter Results', style='Compound.TButton',
+            compound='right', command=self.show_filter_msgbox
+        ).pack(side='right', padx=(5, 7), pady=5)
+        # Create treeview widget
+        self.tree = CustomTreeView(
+            self, style='Selectable.Treeview', anchor='w',
+            headings=('words', 'entity type', 'part of speech')
+        )
+        self.tree.pack(
+            side='bottom', fill='both', expand=True, before=self.head
+        )
+        # TODO: could edit this to use a save from the config file
+        self.tree.set_filter(
+            hidden_ents=[], hidden_pos=[], update=False
+        )
+
+    def show_filter_msgbox(self):
+        # Not happy with constructing the msgbox every time,
+        # however the work around is painful and time consuming.
+        # TODO: see above
+        msgbox = FilterMessageBox()
+        msgbox.take_controls()
+
+    def update_tree(self, data:list[list]):
+        """Update treeview with new data"""
+        self.tree.update_tree(data=data)
+
+    def save(self, fp:str=''):
+        """Save output to csv file"""
+        log.debug('Exporting data to csv file')
+        settings = self.master.settings_tab
+        data = [
+            self.tree.item(row)['values'] \
+            for row in self.tree.get_children()
+        ]
+        if not fp:
+            fp = settings.auto_save_path.get()
+        fp += '/output.csv'
+        # export_to_csv(data, fp)
+
+
+class LegendTab(NotebookTab):
+    """Contains widgets explaining spacy lingo stuff"""
+    def __init__(self, master, title='Legend', desc=''):
+        log.debug('Initializing legend tab')
+        super().__init__(master, title='Legend',)
+        self.tree = CustomTreeView(
+            self, headings=('entities', '', 'parts of speech', '')
+        )
+        self.tree.pack(side='bottom', fill='both', expand=True, before=self.head)
+        # populate tree
+        settings = master.master.cfg
+        entities = settings['entities']
+        word_classes = settings['POS_tags']
+        for i, (entity, pos) in enumerate(
+            zip(entities.items(), word_classes.items())
+        ):
+            tag = 'even' if i % 2 == 0 else 'odd'
+            values = entity + pos
+            values = [
+                v.upper() if values.index(v) % 2 == 0 else v \
+                for v in values
+            ]
+            self.tree.insert('', 'end', values=values, tags=(tag,))
+
+
+class SettingWidget(ttk.Frame):
+    """Base widget for widgets in settings menu"""
+    def __init__(
+        self, master, label:str, desc:str, var:tk.Variable, **kw
+    ):
+        log.debug(f'Initializing setting widget at {master}')
+        super().__init__(master, style='SettingWidget.TFrame', **kw)
+        self.columnconfigure(0, weight=1)
+        ttk.Label(
+            self, text=label, style='SettingWidget.TLabel'
+        ).grid(column=0, row=0, sticky='w', padx=(0, 5))
+        ttk.Label(
+            self, text=desc, style='SettingWidgetDesc.TLabel'
+        ).grid(column=0, columnspan=2, row=2, sticky='w')
+        var.trace_add('write', self.on_update)
+        self.var = var
+
+    def on_update(self, *args):
+        log.debug(f'Updating setting widget {self}')
+        cfg = self.master.master.master.master.cfg  # this is just bad
+        try:
+            cfg.update('settings', self.var)
+        except AttributeError:
+            print('failed update attribute error')
+            # TODO: logging
+
+
+class CheckBoxSetting(SettingWidget):
+    """Setting with a checkbox. Best used with a boolean setting."""
+    def __init__(
+            self, master, label:str, desc:str, var:tk.Variable, **kw
+    ):
+        super().__init__(master, label, desc, var, **kw)
+        ttk.Checkbutton(
+            self, variable=var, style='SettingWidget.TCheckbutton'
+        ).grid(column=1, row=0, sticky='w')
+
+
+class RadioSetting(SettingWidget):
+    """Setting with a radio button"""
+    def __init__(
+        self, master, label:str, desc:str, var:tk.Variable,
+        options:tuple[str], **kw
+    ):
+        super().__init__(master, label, desc, var, **kw)
+        for col, opt in enumerate(options):
+            ttk.Radiobutton(
+                self, text=opt.title(), value=opt, variable=var,
+                style='SettingWidget.TRadiobutton'
+            ).grid(column=col, columnspan=1, row=1, sticky='e')
+
+
+class TextSetting(SettingWidget):
+    """Setting with a text box. Best used with a string setting"""
+    def __init__(
+        self, master, label:str, desc:str, var:tk.Variable, **kw
+    ):
+        super().__init__(master, label, desc, var, **kw)
+        ttk.Entry(
+            self, textvariable=var, style='SettingWidget.TEntry'
+        ).grid(column=0, columnspan=2, row=1, sticky='we')
+
+
+class SettingsTab(NotebookTab):
+    """Contains setting controls"""
+    def __init__(self, master):
+        log.debug('Initializing settings tab')
+        super().__init__(master, title='Settings')
+        # Load settings
+        cfg = self.master.master.cfg
+        for name, setting in cfg.create_settings_vars():
+            setattr(self, name, setting)
+        ttk.Button(
+            self.head, text='Restore Defaults', style='Head.TButton',
+            command=lambda: cfg.validate(force_restore=True)
+        ).pack(side='right', padx=(5, 7), pady=5)
+        # Setting widgets will be packed into this frame
+        frame = ttk.Frame(self)
+        frame.pack(side='top', anchor='w')
+        pack_info = {
+            'fill': 'x', 'anchor': 'w', 'padx': 10, 'pady': 10
+        }
+        # Create setting widgets
+        self.auto_save_checkbox = CheckBoxSetting(
+            frame, label='Enable auto save',
+            desc='Automatically save results to a file',
+            var=self.auto_save
+        )
+        self.auto_save_checkbox.pack(pack_info)
+        self.auto_save_path_entry = TextSetting(
+            frame, label='Auto save path',
+            desc='Where auto saved files are stored',
+            var=self.auto_save_path
+        )
+        self.auto_save_path_entry.pack(pack_info)
+        self.default_url_entry = TextSetting(
+            frame, label='Default URL',
+            desc='URL in address bar on start up',
+            var=self.default_url
+        )
+        self.default_url_entry.pack(pack_info)
+        self.group_entities_checkbox = CheckBoxSetting(
+            frame, label='Group Entities',
+            desc='Entities of the same type will appear on the same ' \
+                 'line',
+            var=self.group_entities
+        )
+        #self.group_entities_checkbox.pack(pack_info)
+        self.colour_mode_radio = RadioSetting(
+            frame, label='Colour Theme',
+            desc='The current colour theme (restart required)',
+            var=self.colour_mode, options=('light', 'dark')
+        )
+        self.colour_mode_radio.pack(pack_info)
+
+
+# WIP
+class HelpTab(NotebookTab):
+    """Tab containing helpful info on how to use the app"""
+    def __init__(self, master):
+        log.debug('Initializing help tab')
+        super().__init__(master, title='Help')
+        test_btn = ttk.Button(
+            self, text='www.weblink.com', style='HyperLink.TButton',
+            cursor='hand2'
+        )
+        test_btn.pack()
+        ttk.Label(self, text='testtext').pack()
+
+
 class CustomMessageBox(tk.Toplevel):
     """A custom popup messagebox"""
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        self.root: AppRoot = self.nametowidget('')
+        self.root = self.nametowidget('')
     
     def take_controls(self):
         """
@@ -393,23 +610,6 @@ class FilterMessageBox(CustomMessageBox):
         return result
 
 
-class NotebookTab(ttk.Frame):
-    def __init__(self, notebook, title:str, desc:str='', *args, **kw):
-        super().__init__(notebook, *args, **kw)
-        self.head_title = tk.StringVar(value=title)
-        self.head_desc = tk.StringVar(value=desc)
-        self.head = ttk.Frame(self, style='Head.TFrame')
-        self.head.pack(side='top', fill='x')
-        ttk.Label(
-            self.head, style='HeadTitle.TLabel',
-            textvariable=self.head_title
-        ).pack(side='left', padx=5, pady=5)
-        ttk.Label(
-            self.head, style='Head.TLabel',
-            textvariable=self.head_desc
-        ).pack(side='left', padx=(0, 5), pady=5)
-        
-
 class FilterMessageBoxTab(NotebookTab):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
@@ -481,228 +681,3 @@ class FilterMessageBoxTab(NotebookTab):
             self.move(item)
         # Reselect item (because selected item was replaced)
         self.update_focus(self.tree.get_children()[index])
-
-
-class Notebook(ttk.Notebook):
-    """Tkinter frame that ouputs results from spacy"""
-    def __init__(self, master:tk.Tk):
-        log.debug('Initializing notebook')
-        super().__init__(master)
-        # Create notebook tabs
-        self.legend_tab = LegendTab(self)
-        self.settings_tab = SettingsTab(self)
-        self.results_tab = ResultsTab(self)
-        self.help_tab = HelpTab(self)
-        # Show notebook tabs
-        self.add(self.results_tab, text='Results')
-        self.add(self.legend_tab, text='Legend')
-        self.add(self.settings_tab, text='Settings')
-        # self.add(self.help_tab, text='Help')
-
-
-class ResultsTab(NotebookTab):
-    """Tkinter ttk Frame containing output for parsed data"""
-    def __init__(self, master):
-        log.debug('Initializing results tab')
-        super().__init__(master, title='Results')
-        self.root = master.master
-        colour = master.settings_tab.colour_mode.get()
-        # Create filter button widget
-        ImageButton(
-            self.head, img_fn=f'filter_{colour}.png', img_size=(18, 16),
-            text='Filter Results', style='Compound.TButton',
-            compound='right', command=self.show_filter_msgbox
-        ).pack(side='right', padx=(5, 7), pady=5)
-        # Create treeview widget
-        self.tree = CustomTreeView(
-            self, style='Selectable.Treeview', anchor='w',
-            headings=('words', 'entity type', 'part of speech')
-        )
-        self.tree.pack(
-            side='bottom', fill='both', expand=True, before=self.head
-        )
-        # TODO: could edit this to use a save from the config file
-        self.tree.set_filter(
-            hidden_ents=[], hidden_pos=[], update=False
-        )
-
-    def show_filter_msgbox(self):
-        # Not happy with constructing the msgbox every time,
-        # however the work around is painful and time consuming.
-        # TODO: see above
-        msgbox = FilterMessageBox()
-        msgbox.take_controls()
-
-    def update_tree(self, data:list[list]):
-        """Update treeview with new data"""
-        self.tree.update_tree(data=data)
-
-    def save(self, fp:str=''):
-        """Save output to csv file"""
-        log.debug('Exporting data to csv file')
-        settings = self.master.settings_tab
-        data = [
-            self.tree.item(row)['values'] \
-            for row in self.tree.get_children()
-        ]
-        if not fp:
-            fp = settings.auto_save_path.get()
-        fp += '/output.csv'
-        export_to_csv(data, fp)
-
-
-class LegendTab(NotebookTab):
-    """Contains widgets explaining spacy lingo stuff"""
-    def __init__(self, master, title='Legend', desc=''):
-        log.debug('Initializing legend tab')
-        super().__init__(master, title='Legend',)
-        self.tree = CustomTreeView(
-            self, headings=('entities', '', 'parts of speech', '')
-        )
-        self.tree.pack(side='bottom', fill='both', expand=True, before=self.head)
-        # populate tree
-        settings = master.master.cfg
-        entities = settings['entities']
-        word_classes = settings['POS_tags']
-        for i, (entity, pos) in enumerate(
-            zip(entities.items(), word_classes.items())
-        ):
-            tag = 'even' if i % 2 == 0 else 'odd'
-            values = entity + pos
-            values = [
-                v.upper() if values.index(v) % 2 == 0 else v \
-                for v in values
-            ]
-            self.tree.insert('', 'end', values=values, tags=(tag,))
-
-
-class SettingWidget(ttk.Frame):
-    """Base widget for widgets in settings menu"""
-    def __init__(
-        self, master, label:str, desc:str, var:tk.Variable, **kw
-    ):
-        log.debug(f'Initializing setting widget at {master}')
-        super().__init__(master, style='SettingWidget.TFrame', **kw)
-        self.columnconfigure(0, weight=1)
-        ttk.Label(
-            self, text=label, style='SettingWidget.TLabel'
-        ).grid(column=0, row=0, sticky='w', padx=(0, 5))
-        ttk.Label(
-            self, text=desc, style='SettingWidgetDesc.TLabel'
-        ).grid(column=0, columnspan=10, row=2, sticky='w')
-        var.trace_add('write', self.on_update)
-        self.var = var
-
-    def on_update(self, *args):
-        log.debug(f'Updating setting widget {self}')
-        cfg = self.master.master.master.master.cfg  # this is just bad
-        cfg.update('settings', self.var)
-        try:
-            cfg.update('settings', self.var)
-        except AttributeError:
-            print('failed update attribute error')
-            # TODO: logging
-
-
-class CheckBoxSetting(SettingWidget):
-    """Setting with a checkbox. Best used with a boolean setting."""
-    def __init__(
-            self, master, label:str, desc:str, var:tk.Variable, **kw
-    ):
-        super().__init__(master, label, desc, var, **kw)
-        ttk.Checkbutton(
-            self, variable=var, style='SettingWidget.TCheckbutton'
-        ).grid(column=1, row=0, sticky='w')
-        
-
-class RadioSetting(SettingWidget):
-    """Setting with a radio button"""
-    def __init__(
-        self, master, label:str, desc:str, var:tk.Variable,
-        options:tuple[str], **kw
-    ):
-        super().__init__(master, label, desc, var, **kw)
-        for col, opt in enumerate(options):
-            text = f' {opt.title()}'  # add space as margin
-            ttk.Radiobutton(
-                self, text=text, value=opt, variable=var,
-                style='SettingWidget.TRadiobutton'
-            ).grid(column=col+1, columnspan=1, row=0, sticky='e')
-
-
-class TextSetting(SettingWidget):
-    """Setting with a text box. Best used with a string setting"""
-    def __init__(
-        self, master, label:str, desc:str, var:tk.Variable, **kw
-    ):
-        super().__init__(master, label, desc, var, **kw)
-        ttk.Entry(
-            self, textvariable=var, style='SettingWidget.TEntry'
-        ).grid(column=0, columnspan=2, row=1, sticky='we')
-
-
-class SettingsTab(NotebookTab):
-    """Contains setting controls"""
-    def __init__(self, master):
-        log.debug('Initializing settings tab')
-        super().__init__(master, title='Settings')
-        # Load settings
-        cfg: ConfigManager = self.master.master.cfg
-        for name, setting in cfg.create_settings_vars():
-            setattr(self, name, setting)
-        ttk.Button(
-            self.head, text='Restore Defaults', style='Head.TButton',
-            command=lambda: cfg.validate(force_restore=True)
-        ).pack(side='right', padx=(5, 7), pady=5)
-        # Setting widgets will be packed into this frame
-        frame = ttk.Frame(self)
-        frame.pack(side='top', anchor='w')
-        pack_info = {
-            'fill': 'x', 'anchor': 'w', 'padx': 10, 'pady': 10
-        }
-        # Create setting widgets
-        self.auto_save_checkbox = CheckBoxSetting(
-            frame, label='Enable auto save',
-            desc='Automatically save results to a file',
-            var=self.auto_save
-        )
-        self.auto_save_checkbox.pack(pack_info)
-        self.auto_save_path_entry = TextSetting(
-            frame, label='Auto save path',
-            desc='Where auto saved files are stored',
-            var=self.auto_save_path
-        )
-        self.auto_save_path_entry.pack(pack_info)
-        self.default_url_entry = TextSetting(
-            frame, label='Default URL',
-            desc='URL in address bar on start up',
-            var=self.default_url
-        )
-        self.default_url_entry.pack(pack_info)
-        self.group_entities_checkbox = CheckBoxSetting(
-            frame, label='Group Entities',
-            desc='Entities of the same type will appear on the same ' \
-                 'line',
-            var=self.group_entities
-        )
-        #self.group_entities_checkbox.pack(pack_info)
-        self.colour_mode_radio = RadioSetting(
-            frame, label='Colour Theme',
-            desc='The current colour theme (restart required)',
-            var=self.colour_mode, options=('light', 'dark')
-        )
-        self.colour_mode_radio.pack(pack_info)
-
-
-# WIP
-class HelpTab(NotebookTab):
-    """Tab containing helpful info on how to use the app"""
-    def __init__(self, master):
-        log.debug('Initializing help tab')
-        super().__init__(master, title='Help')
-        test_btn = ttk.Button(
-            self, text='www.weblink.com', style='HyperLink.TButton',
-            cursor='hand2'
-        )
-        test_btn.pack()
-        ttk.Label(self, text='testtext').pack()

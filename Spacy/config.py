@@ -1,20 +1,21 @@
 import logging
-import tkinter as tk
 from configparser import ConfigParser
 from appdirs import AppDirs
+from os.path import exists
 from distutils.util import strtobool
-from os import path
+from tkinter import StringVar, BooleanVar
 
-from constants import OUTPUT_DIR
+from constants import OUTPUT_PATH
 
 
 log = logging.getLogger(__name__)
+
 
 # TODO: this should not be stored here
 defaults = {
     'settings': {
         'auto_save': 'no',
-        'auto_save_path': str(OUTPUT_DIR),
+        'auto_save_path': str(OUTPUT_PATH),
         'default_url': 'https://en.wikipedia.org/wiki/',
         'group_entities': 'no',
         'colour_mode': 'light'
@@ -67,24 +68,35 @@ defaults = {
 
 
 class ConfigManager(ConfigParser):
-    """Configuration manager for spacy research project"""
+    """Custom configuration manager"""
     def __init__(self, dirs:AppDirs):
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
-        self.validate()  # pass True to restore defaults
+        self.validate()
         self.read(self.fp)
 
     def validate(self, force_restore:bool=False):
-        """create config file if it doesnt exist"""
-        log.debug('Validating configs')
-        if path.exists(self.fp) and not force_restore:
+        """Validate the contents and existance of the config"""
+        if exists(self.fp) and not force_restore:
             return
-        log.info('Restoring config defaults')
         for section, options in defaults.items():
             self[section] = options
         with open(self.fp, 'w') as file: 
             self.write(file)
+
+    def create_settings_vars(self) -> list:
+        """returns list of tk vars created from the configuration"""
+        variables = []
+        for key, value in self['settings'].items():
+            try:
+                value = strtobool(value)
+                var = BooleanVar(name=key)
+            except ValueError:
+                var = StringVar(name=key)
+            var.set(value)
+            variables.append((key, var))
+        return variables
 
     def update(self, section, variable):
         value = variable.get()
@@ -94,16 +106,3 @@ class ConfigManager(ConfigParser):
         log.debug(
             f'Updated config: [{section}]-[{variable}]-[{value}]'
         )
-
-    def create_settings_vars(self) -> list:
-        """returns list of tk vars created from the configuration"""
-        variables = []
-        for key, value in self['settings'].items():
-            try:
-                value = strtobool(value)
-                var = tk.BooleanVar(name=key)
-            except ValueError:
-                var = tk.StringVar(name=key)
-            var.set(value)
-            variables.append((key, var))
-        return variables
