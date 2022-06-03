@@ -315,7 +315,9 @@ class ContentTab(NotebookTab):
         self.content.trace_add(
             'write', lambda *_: self.write_to_output_field()
         )
-        self.input_field = tk.Text(self)
+        self.input_field = tk.Text(
+            self, bd=0, highlightthickness=0, font=('Segoe UI', 9)
+        )
         self.input_field.place(relw=1, relh=1, anchor='nw')
 
     def write_to_output_field(self):
