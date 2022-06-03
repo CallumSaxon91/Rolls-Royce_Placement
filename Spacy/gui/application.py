@@ -1,10 +1,14 @@
 import logging
 import csv
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from appdirs import AppDirs
 from spacy import load as get_pipe
 from threading import Thread
+from urllib.parse import urlparse
+from requests.exceptions import ConnectionError as RequestsConnectionError
+
+from utils import parse_string_content, web_scrape
 
 from .widgets import Notebook, AddressBar
 from .style import Style
@@ -87,3 +91,67 @@ class Root(tk.Tk):
         writer.writerows(tree_data)
         file.close()
         log.info(f'Exported {len(tree_data)} rows to {file}')
+        
+    def nlp(self, address:str):
+        """Collect, parse and output data to results tab"""
+        nb = self.notebook
+        absolute_url = bool(urlparse(address).netloc)
+        self.addbar.update_gui_state(searching=True)
+        
+        def connection_error(url:str):
+            log.error(f"couldn't establish connection with {url}")
+            self.addbar.update_gui_state(searching=False)
+            messagebox.showerror(
+                title='Connection Error',
+                message="Couldn't establish an internet connection. " \
+                        "Please check your internet connection and " \
+                        "try again."
+            )
+        
+        def get_content_absolute():
+            return web_scrape(
+                address, remove_linebreak=True
+            )
+
+        def get_content_non_absolute():
+            with open(address, 'r') as file:
+                title = address.split('/')[-1]
+                content = file.read()
+            title = title.split('.')[0].replace('_', ' ').title()
+            return title, content
+
+        def thread_func():
+            try:
+                title, content = get_content_absolute() \
+                    if absolute_url else get_content_non_absolute()
+            except RequestsConnectionError:
+                connection_error()
+                return
+            nb.results_tab.head_title.set(title)
+            self._parsed = parse_string_content(
+                pipeline=self.pipeline,
+                string="".join(content)
+            )
+            log.info('Finished parsing content')
+
+        def check_thread_finished(thread, ms:int):
+            if thread.is_alive():
+                self.after(ms, lambda: check_thread_finished(thread, ms))
+                return
+            output_result()
+        
+        def output_result():
+            nb.contents_tab.content.set(
+                "".join([f'{row[0]} ' for row in self._parsed])
+            )
+            nb.results_tab.tree.update_tree(self._parsed)
+            self.addbar.update_gui_state(searching=False)
+            if nb.settings_tab.auto_save.get():
+                nb.results_tab.save()
+        
+        thread = Thread(target=thread_func)
+        thread.daemon = True
+        thread.start()
+        check_thread_finished(thread, ms=1000)
+        
+        

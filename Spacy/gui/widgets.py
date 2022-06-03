@@ -37,7 +37,7 @@ class AddressBar(ttk.Frame):
         # Begin parsing process button
         self.begin_btn = ttk.Button(
             self, text='  Start  ', style='AddressBar.TButton',
-            command=self.start_process
+            command=self.on_start_btn
         )
         self.begin_btn.pack(side='left', fill='y', padx=5, pady=5)
         # Value in the address bar input field
@@ -70,13 +70,13 @@ class AddressBar(ttk.Frame):
         style='Compound.TButton'
         self.import_btn = ImageButton(
             self, img_fn=f'import_{colour}.png', img_size=img_size,
-            text='Parse File', compound=compound,
+            text='Open File', compound=compound,
             command=self.import_file, style=style
         )
         self.import_btn.pack(side='right', padx=(5, 0))
         self.export_btn = ImageButton(
-            self, img_fn=f'save_{colour}.png', img_size=img_size,
-            text='Export', compound=compound,
+            self, img_fn=f'export_{colour}.png', img_size=img_size,
+            text='Export Results', compound=compound,
             command=self.export_results, style=style
         )
         self.export_btn.pack(
@@ -92,72 +92,6 @@ class AddressBar(ttk.Frame):
         """Export results to output file"""
         self.master.export_results()
 
-    def on_connection_error(self, url:str):
-        log.error(f"couldn't establish connection with {url}")
-        self.update_gui_state(searching=False)
-        messagebox.showerror(
-            title='Connection Error',
-            message="Couldn't establish an internet connection. " \
-                    "Please check your internet connection and " \
-                    "try again."
-        )
-
-    def start_process(self, event:tk.Event=None):
-        """Begin button has been clicked"""
-        # Pipeline loads on a seperate thread so it
-        # is important to have this check.
-        if not hasattr(self.master, 'pipeline'):
-            raise PipelineNotLoaded
-        def check_finished():
-            if self.active_state:
-                self.after(1000, check_finished)
-                return
-            self.populate_fields(self.data)
-            self.master.notebook.contents_tab.content.set(
-                "".join([f'{row[0]} ' for row in self.data])
-            )
-            if self.settings.auto_save.get():
-                self.master.notebook.results_tab.save()
-
-        # Update GUI
-        self.in_search_state = True
-        self.update_gui_state(searching=True)
-        # Create and start process on separate thread
-        search_thread = Thread(target=self.process_data)
-        search_thread.daemon = True
-        search_thread.start()
-        self.after(1000, check_finished)
-
-    def process_data(self):
-        address = self.address.get()
-        log.debug(f'Processing data from {address}')
-        absolute_url = bool(urlparse(address).netloc)
-        if absolute_url:
-            # Get content from the web
-            try:
-                data = web_scrape(address, remove_linebreak=True)
-                title, data = data['title'], "".join(data['content'])
-            except RequestsConnectionError:
-                self.on_connection_error(address)
-                return
-        else:
-            # Get content from a local file
-            with open(address, 'r') as file:
-                title = address.split('/')[-1]
-                data = file.read()
-            title = title.split('.')[0].replace('_', ' ').title()
-        self.master.notebook.results_tab.head_title.set(title)
-        data = parse_string_content(
-            pipeline=self.master.pipeline,
-            string=data
-        )
-        # update gui to show searching has finished
-        self.update_gui_state(searching=False)
-        # set flag to inform app that the thread has finished
-        self.data = data
-        self.active_state = False
-        log.debug('Search complete')
-
     def update_gui_state(self, searching:bool):
         """Enables or disables addressbar widgets"""
         log.debug(f'Updating address bar GUI. Disabled = {searching}')
@@ -171,13 +105,9 @@ class AddressBar(ttk.Frame):
         self.progress_bar.pack_forget()
         self.progress_bar.stop()
         self.begin_btn.config(state='normal')
-
-    def populate_fields(self, data:list[tuple]):
-        """output results to gui"""
-        log.debug('Outputing parsed data')
-        results_tab = self.master.notebook.results_tab
-        results_tab.update_tree(data)
-        results_tab.tree.unfiltered_data = data
+        
+    def on_start_btn(self):
+        self.master.nlp(self.address.get())
 
 
 class CustomTreeView(ttk.Treeview):

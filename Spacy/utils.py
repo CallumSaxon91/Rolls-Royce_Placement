@@ -75,7 +75,7 @@ def web_scrape(
     if remove_linebreak:
         content = [item.replace('\n', '') for item in content]
     title = soup.title.string
-    return {'title': title, 'content': content}
+    return title, content
 
 def parse_string_content(pipeline:Language, string:str) -> list[list]:
     """Returns parsed string content as [word, entity, pos]"""
