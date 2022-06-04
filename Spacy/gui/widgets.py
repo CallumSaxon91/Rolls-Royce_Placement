@@ -313,14 +313,14 @@ class ContentTab(NotebookTab):
         super().__init__(master, title=title)
         self.content = tk.StringVar()
         self.content.trace_add(
-            'write', lambda *_: self.write_to_output_field()
+            'write', lambda *_: self._write_to_output_field()
         )
         self.input_field = tk.Text(
             self, bd=0, highlightthickness=0, font=('Segoe UI', 9)
         )
         self.input_field.place(relw=1, relh=1, anchor='nw')
 
-    def write_to_output_field(self):
+    def _write_to_output_field(self):
         content = self.content.get()
         self.input_field.delete('1.0', 'end')
         self.input_field.insert('1.0', content)
