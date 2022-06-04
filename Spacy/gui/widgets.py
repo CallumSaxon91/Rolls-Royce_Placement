@@ -233,7 +233,7 @@ class Notebook(ttk.Notebook):
         self.help_tab = HelpTab(self)
         # Show notebook tabs
         self.add(self.results_tab, text='Results')
-        self.add(self.contents_tab, text='Contents')
+        self.add(self.contents_tab, text='Content')
         self.add(self.legend_tab, text='Legend')
         self.add(self.settings_tab, text='Settings')
         # self.add(self.help_tab, text='Help')
@@ -311,19 +311,15 @@ class ContentTab(NotebookTab):
     def __init__(self, master, title='Content', desc=''):
         log.debug('Initializing content tab')
         super().__init__(master, title=title)
-        self.content = tk.StringVar()
-        self.content.trace_add(
-            'write', lambda *_: self._write_to_output_field()
-        )
-        self.input_field = tk.Text(
+        self.content_field = tk.Text(
             self, bd=0, highlightthickness=0, font=('Segoe UI', 9)
         )
-        self.input_field.place(relw=1, relh=1, anchor='nw')
+        self.content_field.pack(fill='both', expand=True)
 
-    def _write_to_output_field(self):
-        content = self.content.get()
-        self.input_field.delete('1.0', 'end')
-        self.input_field.insert('1.0', content)
+    def update_content(self, desc:str, content:str):
+        self.head_desc.set(desc)
+        self.content_field.delete('1.0', 'end')
+        self.content_field.insert('1.0', content)
 
 
 class LegendTab(NotebookTab):
