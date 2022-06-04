@@ -128,9 +128,10 @@ class Root(tk.Tk):
                 connection_error()
                 return
             nb.results_tab.head_title.set(title)
+            self._unparsed = "".join(content)
             self._parsed = parse_string_content(
                 pipeline=self.pipeline,
-                string="".join(content)
+                string=self._unparsed
             )
             log.info('Finished parsing content')
 
@@ -141,9 +142,7 @@ class Root(tk.Tk):
             output_result()
         
         def output_result():
-            nb.contents_tab.content.set(
-                "".join([f'{row[0]} ' for row in self._parsed])
-            )
+            nb.contents_tab.content.set(self._unparsed)
             nb.results_tab.tree.update_tree(self._parsed)
             self.addbar.update_gui_state(searching=False)
             if nb.settings_tab.auto_save.get():
