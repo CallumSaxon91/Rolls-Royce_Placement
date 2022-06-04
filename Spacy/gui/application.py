@@ -1,15 +1,16 @@
-import logging
 import csv
+import logging
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from appdirs import AppDirs
-from spacy import load as get_pipe
 from threading import Thread
+from requests.exceptions import (
+    ConnectionError as RequestsConnectionError
+)
+from spacy import load as get_pipe
 from urllib.parse import urlparse
-from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from utils import parse_string_content, web_scrape
-
 from .widgets import Notebook, AddressBar
 from .style import Style
 from config import ConfigManager
@@ -21,10 +22,10 @@ log = logging.getLogger(__name__)
 
 class Root(tk.Tk):
     """Root of the GUI application"""
-    def __init__(self, name:str, dirs:AppDirs, config:ConfigManager):
+    def __init__(self, name:str, dirs:AppDirs):
         super().__init__()
         self.dirs = dirs
-        self.cfg = config(dirs)
+        self.cfg = ConfigManager(dirs)
         # Configure root window
         self.title(name)
         self.geometry('700x400')
@@ -36,6 +37,21 @@ class Root(tk.Tk):
         self.notebook.pack(fill='both', expand=True)
         # Initialize style
         self.style = Style(self)
+        
+        # Debug Binds
+        self.bind_all('<F1>', self.debug_show_geometry, add=True)
+        self.bind_all('<F2>', self.debug_clear_results, add=True)
+        
+    def debug_show_geometry(self, event=None):
+        print(
+            'Width:', self.winfo_width(), 
+            '\nHeight:', self.winfo_height()
+        )
+    
+    def debug_clear_results(self, event=None):
+        nb = self.notebook
+        nb.results_tab.tree.delete(*nb.results_tab.tree.get_children())
+        nb.contents_tab.content_field.delete('1.0', 'end')
 
     def start(self):
         """Start the GUI application"""
@@ -122,12 +138,12 @@ class Root(tk.Tk):
 
         def thread_func():
             try:
-                title, content = get_content_absolute() \
+                self._content_title, content = get_content_absolute() \
                     if absolute_url else get_content_non_absolute()
             except RequestsConnectionError:
                 connection_error()
                 return
-            nb.results_tab.head_title.set(title)
+            nb.results_tab.head_title.set(self._content_title)
             self._unparsed = "".join(content)
             self._parsed = parse_string_content(
                 pipeline=self.pipeline,
@@ -142,7 +158,9 @@ class Root(tk.Tk):
             output_result()
         
         def output_result():
-            nb.contents_tab.content.set(self._unparsed)
+            nb.contents_tab.update_content(
+                self._content_title, self._unparsed
+            )
             nb.results_tab.tree.update_tree(self._parsed)
             self.addbar.update_gui_state(searching=False)
             if nb.settings_tab.auto_save.get():

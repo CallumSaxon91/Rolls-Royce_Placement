@@ -4,7 +4,6 @@ from appdirs import AppDirs
 from gui import Root
 from utils import validate_dirs
 from logs import setup_logs
-from config import ConfigManager
 from constants import APP_NAME
 
 
@@ -19,8 +18,7 @@ if __name__ == '__main__':
     # GUI main loop
     Root(
         name=APP_NAME,
-        dirs=directories,
-        config=ConfigManager
+        dirs=directories
     ).start()
     # This line will only be read if the GUI has been closed properly
     log.info('Exited application successfully')
