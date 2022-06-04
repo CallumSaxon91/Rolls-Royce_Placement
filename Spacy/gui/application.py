@@ -1,4 +1,5 @@
 import csv
+import ctypes
 import logging
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -37,6 +38,9 @@ class Root(tk.Tk):
         self.notebook.pack(fill='both', expand=True)
         # Initialize style
         self.style = Style(self)
+        # Change titlebar to dark variant (win11 only)
+        if self.notebook.settings_tab.colour_mode.get() == 'dark':
+            self.set_dark_titlebar()
         
         # Debug Binds
         self.bind_all('<F1>', self.debug_show_geometry, add=True)
@@ -52,6 +56,21 @@ class Root(tk.Tk):
         nb = self.notebook
         nb.results_tab.tree.delete(*nb.results_tab.tree.get_children())
         nb.contents_tab.content_field.delete('1.0', 'end')
+        
+    def set_dark_titlebar(self):
+        """(Windows 11 Only) Change titlebar to dark variant"""
+        DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+        set_window_attribute = \
+            ctypes.windll.dwmapi.DwmSetWindowAttribute
+        get_parent = ctypes.windll.user32.GetParent
+        hwnd = get_parent(self.winfo_id())
+        rendering_policy = DWMWA_USE_IMMERSIVE_DARK_MODE
+        value = 2
+        value = ctypes.c_int(value)
+        set_window_attribute(
+            hwnd, rendering_policy, ctypes.byref(value),
+            ctypes.sizeof(value)
+        )
 
     def start(self):
         """Start the GUI application"""
