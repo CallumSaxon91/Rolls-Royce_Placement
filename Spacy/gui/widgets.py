@@ -289,8 +289,9 @@ class ResultsTab(NotebookTab):
         msgbox = FilterMessageBox()
         msgbox.take_controls()
 
-    def update_tree(self, data:list[list]):
+    def update_tree(self, desc:str, data:list[list]):
         """Update treeview with new data"""
+        self.head_desc.set(desc)
         self.tree.update_tree(data=data)
 
     def save(self, fp:str=''):
