@@ -137,6 +137,15 @@ class Root(tk.Tk):
                         "Please check your internet connection and " \
                         "try again."
             )
+            
+        def pipeline_loading():
+            log.error('Attempted nlp before pipeline was loaded')
+            self.addbar.update_gui_state(searching=False)
+            messagebox.showerror(
+                title='Pipeline Error',
+                message='Cannot do that right now because the ' \
+                        'pipeline has not been loaded. Try again soon.'
+            )
         
         def get_content_absolute():
             return web_scrape(
@@ -157,25 +166,34 @@ class Root(tk.Tk):
             except RequestsConnectionError:
                 connection_error()
                 return
-            nb.results_tab.head_title.set(self._content_title)
             self._unparsed = "".join(content)
-            self._parsed = parse_string_content(
-                pipeline=self.pipeline,
-                string=self._unparsed
-            )
+            try:
+                self._parsed = parse_string_content(
+                    pipeline=self.pipeline,
+                    string=self._unparsed
+                )
+            except AttributeError:
+                pipeline_loading()
+                return
             log.info('Finished parsing content')
 
         def check_thread_finished(thread, ms:int):
             if thread.is_alive():
                 self.after(ms, lambda: check_thread_finished(thread, ms))
                 return
-            output_result()
+            try:
+                output_result()
+            except AttributeError as e:
+                log.error(f'Attribute error: {e}')
+                return
         
         def output_result():
             nb.contents_tab.update_content(
                 self._content_title, self._unparsed
             )
-            nb.results_tab.tree.update_tree(self._parsed)
+            nb.results_tab.update_tree(
+                self._content_title, self._parsed
+            )
             self.addbar.update_gui_state(searching=False)
             if nb.settings_tab.auto_save.get():
                 nb.results_tab.save()
