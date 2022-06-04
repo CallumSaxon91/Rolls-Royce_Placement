@@ -1,6 +1,6 @@
 import csv
-import ctypes
 import logging
+import ctypes as ct
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from appdirs import AppDirs
@@ -59,17 +59,12 @@ class Root(tk.Tk):
         
     def set_dark_titlebar(self):
         """(Windows 11 Only) Change titlebar to dark variant"""
-        DWMWA_USE_IMMERSIVE_DARK_MODE = 20
-        set_window_attribute = \
-            ctypes.windll.dwmapi.DwmSetWindowAttribute
-        get_parent = ctypes.windll.user32.GetParent
-        hwnd = get_parent(self.winfo_id())
-        rendering_policy = DWMWA_USE_IMMERSIVE_DARK_MODE
-        value = 2
-        value = ctypes.c_int(value)
-        set_window_attribute(
-            hwnd, rendering_policy, ctypes.byref(value),
-            ctypes.sizeof(value)
+        value = ct.c_int(2)
+        # I wish I knew how ctypes worked internally but I don't
+        # TODO: learn ctypes to implement better commenting
+        ct.windll.dwmapi.DwmSetWindowAttribute(
+            ct.windll.user32.GetParent(self.winfo_id()),
+            20, ct.byref(value), ct.sizeof(value)
         )
 
     def start(self):
