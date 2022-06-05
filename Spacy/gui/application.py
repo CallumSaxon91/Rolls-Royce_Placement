@@ -3,19 +3,19 @@ import logging
 import ctypes as ct
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from appdirs import AppDirs
 from threading import Thread
+from urllib.parse import urlparse
+from appdirs import AppDirs
 from requests.exceptions import (
     ConnectionError as RequestsConnectionError
 )
+from spacy.language import Language
 from spacy import load as get_pipe
-from urllib.parse import urlparse
-
 from utils import parse_string_content, web_scrape
+from constants import ASSETS_PATH
+from config import ConfigManager
 from .widgets import Notebook, AddressBar
 from .style import Style
-from config import ConfigManager
-from constants import ASSETS_PATH
 
 
 log = logging.getLogger(__name__)
@@ -23,32 +23,41 @@ log = logging.getLogger(__name__)
 
 class Root(tk.Tk):
     """Root of the GUI application"""
+    _content_title: str
+    _unparsed: str
+    _parsed: list[list[str]]
+    pipeline: Language
+    
     def __init__(self, name:str, dirs:AppDirs):
         super().__init__()
         self.dirs = dirs
         self.cfg = ConfigManager(dirs)
+
         # Configure root window
         self.title(name)
         self.geometry('700x400')
         self.iconbitmap(f'{ASSETS_PATH}/icon.ico')
+
         # Create and show controls
         self.notebook = Notebook(self)
         self.addbar = AddressBar(self)
         self.addbar.pack(fill='x')
         self.notebook.pack(fill='both', expand=True)
+
         # Initialize style
         self.style = Style(self)
+
         # Change titlebar to dark variant (win11 only)
         if self.notebook.settings_tab.colour_mode.get() == 'dark':
             self.set_dark_titlebar()
-        
+
         # Debug Binds
         self.bind_all('<F1>', self.debug_show_geometry, add=True)
         self.bind_all('<F2>', self.debug_clear_results, add=True)
-        
+
     def debug_show_geometry(self, event=None):
         print(
-            'Width:', self.winfo_width(), 
+            'Width:', self.winfo_width(),
             '\nHeight:', self.winfo_height()
         )
     
@@ -56,7 +65,7 @@ class Root(tk.Tk):
         nb = self.notebook
         nb.results_tab.tree.delete(*nb.results_tab.tree.get_children())
         nb.contents_tab.content_field.delete('1.0', 'end')
-        
+
     def set_dark_titlebar(self):
         """(Windows 11 Only) Change titlebar to dark variant"""
         value = ct.c_int(2)
@@ -121,13 +130,13 @@ class Root(tk.Tk):
         writer.writerows(tree_data)
         file.close()
         log.info(f'Exported {len(tree_data)} rows to {file}')
-        
+
     def nlp(self, address:str):
         """Collect, parse and output data to results tab"""
         nb = self.notebook
         absolute_url = bool(urlparse(address).netloc)
         self.addbar.update_gui_state(searching=True)
-        
+
         def connection_error(url:str):
             log.error(f"couldn't establish connection with {url}")
             self.addbar.update_gui_state(searching=False)
@@ -137,7 +146,7 @@ class Root(tk.Tk):
                         "Please check your internet connection and " \
                         "try again."
             )
-            
+
         def pipeline_loading():
             log.error('Attempted nlp before pipeline was loaded')
             self.addbar.update_gui_state(searching=False)
@@ -146,7 +155,7 @@ class Root(tk.Tk):
                 message='Cannot do that right now because the ' \
                         'pipeline has not been loaded. Try again soon.'
             )
-        
+
         def get_content_absolute():
             return web_scrape(
                 address, remove_linebreak=True
@@ -186,7 +195,7 @@ class Root(tk.Tk):
             except AttributeError as e:
                 log.error(f'Attribute error: {e}')
                 return
-        
+
         def output_result():
             nb.contents_tab.update_content(
                 self._content_title, self._unparsed
@@ -197,10 +206,8 @@ class Root(tk.Tk):
             self.addbar.update_gui_state(searching=False)
             if nb.settings_tab.auto_save.get():
                 nb.results_tab.save()
-        
+
         thread = Thread(target=thread_func)
         thread.daemon = True
         thread.start()
         check_thread_finished(thread, ms=1000)
-        
-        
