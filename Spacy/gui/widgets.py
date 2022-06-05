@@ -1,13 +1,9 @@
 import logging
 import tkinter as tk
-from tkinter import ttk, messagebox
-from threading import Thread
-from requests.exceptions import ConnectionError as RequestsConnectionError
-from urllib.parse import urlparse
+from tkinter import ttk
 
-from utils import image, up_list, web_scrape, parse_string_content
+from utils import image, up_list
 from constants import ODD, EVEN
-from exceptions import PipelineNotLoaded
 
 
 log = logging.getLogger(__name__)
