@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 class ImageButton(ttk.Button):
     """ttk Button with an image"""
     def __init__(
-            self, master, img_fn:str, img_size:tuple[int, int], 
+            self, master, img_fn:str, img_size:tuple[int, int],
             style:str='TButton', **kw
         ):
         self.img = image(img_fn, img_size)
@@ -24,7 +24,6 @@ class ImageButton(ttk.Button):
 
 class AddressBar(ttk.Frame):
     """Tkinter frame that contains controls used to lookup web url"""
-    active_state: bool = False
 
     def __init__(self, master):
         log.debug('Initializing address bar widget')
@@ -42,7 +41,7 @@ class AddressBar(ttk.Frame):
         )
         # Input field can contain url or file path
         self.input_field = ttk.Entry(
-            self, style='AddressBar.TEntry', 
+            self, style='AddressBar.TEntry',
             textvariable=self.address
         )
         self.input_field.pack(
@@ -101,7 +100,7 @@ class AddressBar(ttk.Frame):
         self.progress_bar.pack_forget()
         self.progress_bar.stop()
         self.begin_btn.config(state='normal')
-        
+
     def on_start_btn(self):
         self.master.nlp(self.address.get())
 
@@ -117,10 +116,10 @@ class CustomTreeView(ttk.Treeview):
     # Filters
     hidden_ents: list = []
     hidden_pos: list = []
-    
+
     def __init__(
         self, master:tk.Widget, headings:tuple[str],
-        anchor:str='w', style:str='Treeview', 
+        anchor:str='w', style:str='Treeview',
         include_scrollbar:bool=True, **kw
     ):
         super().__init__(
@@ -134,14 +133,14 @@ class CustomTreeView(ttk.Treeview):
         self._set_headings(headings, anchor)
         if include_scrollbar:
             self._build_scrollbar()
-            
+
     def _setup_tag_colours(self):
         return  # disabled
         colour_mode = self.root.notebook.settings_tab.colour_mode.get()
         colours = self.root.style.colours[colour_mode]['background']
         self.tag_configure(ODD, background=colours['tertiary'])
         self.tag_configure(EVEN, background=colours['accent_1'])
-        
+
     def _build_scrollbar(self):
         """Build scrollbar for treeview"""
         self.scrollbar = ttk.Scrollbar(
@@ -154,18 +153,18 @@ class CustomTreeView(ttk.Treeview):
             self.scrollbar.pack(side='right', fill='y', before=self)
             self.unbind('<Map>')
         self.bind('<Map>', lambda e: pack())
-        
+
     def _set_headings(self, headings:tuple, anchor:str):
         """Update the treeview headings"""
         self.configure(columns=headings)
         for heading in headings:
             self.column(heading, anchor=anchor, width=100)
             self.heading(heading, text=heading.title())
-            
+
     def parity(self, integer:int) -> str:
         """Returns 'even' or 'odd' when given an integer"""
         return EVEN if integer % 2 == 0 else ODD
-            
+
     def update_tree(self, data:list[list, list]) -> None:
         """Update the values in this treeview widget"""
         current_data = self.get_children()
@@ -204,7 +203,7 @@ class CustomTreeView(ttk.Treeview):
             f'after:[{len(filtered)}]'
         )
         return filtered
-    
+
     def set_filter(
         self, hidden_ents:list, hidden_pos:list, update:bool
     ):
@@ -311,12 +310,18 @@ class ContentTab(NotebookTab):
         self.content_field = tk.Text(
             self, bd=0, highlightthickness=0, font=('Segoe UI', 9)
         )
-        self.content_field.pack(fill='both', expand=True)
+        self.content_field = ttk.Label(self, anchor='nw')
+        self.content_field.pack(
+            fill='both', expand=True, padx=5, pady=5
+        )
+        self.content_field.bind('<Configure>', self.update_label_wrap)
+ 
+    def update_label_wrap(self, event=None):
+        self.content_field.config(wraplength=self.winfo_width() - 10)
 
     def update_content(self, desc:str, content:str):
         self.head_desc.set(desc)
-        self.content_field.delete('1.0', 'end')
-        self.content_field.insert('1.0', content)
+        self.content_field.config(text=content)
 
 
 class LegendTab(NotebookTab):
@@ -479,7 +484,7 @@ class CustomMessageBox(tk.Toplevel):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.root = self.nametowidget('')
-    
+
     def take_controls(self):
         """
             Raises this toplevel above the root and hijacks controls
@@ -547,7 +552,7 @@ class FilterMessageBox(CustomMessageBox):
                 self.hidden_ents, self.hidden_pos, update=True
             )
         self.destroy()
-        
+
     def _sort_data(self, data:list, hidden:list) -> list[list, list]:
         result = []
         hidden = [item.lower() for item in hidden]
@@ -600,7 +605,7 @@ class FilterMessageBoxTab(NotebookTab):
         self.tree.insert(
             '', index, values=values, tags=(self.tree.parity(index),)
         )
-        
+
     # TODO: clean up repeating code from below.
 
     def move_selected(self):
@@ -620,7 +625,7 @@ class FilterMessageBoxTab(NotebookTab):
             self.move(item)
         # Reselect item (because selected item was replaced)
         self.update_focus(self.tree.get_children()[index])
-        
+
     def move_all_others(self):
         # Get values for reselecting item
         focus = self.tree.focus()
