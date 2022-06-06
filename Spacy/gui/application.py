@@ -37,6 +37,7 @@ class Root(tk.Tk):
         # Configure root window
         self.title(name)
         self.geometry('700x400')
+        self.minsize(500, 350)
         self.iconbitmap(f'{ASSETS_PATH}/icon.ico')
 
         # Create and show controls
@@ -79,7 +80,7 @@ class Root(tk.Tk):
 
     def start(self):
         """Start the GUI application"""
-        self.load_spacy_pipeline(name='en_core_web_sm')
+        self.load_spacy_pipeline(name='en_core_web_trf')
         self.mainloop()
 
     def load_spacy_pipeline(self, name):

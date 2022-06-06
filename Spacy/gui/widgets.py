@@ -66,7 +66,7 @@ class AddressBar(ttk.Frame):
             text='Open File', compound=compound,
             command=self.import_file, style=style
         )
-        self.import_btn.pack(side='right', padx=5)
+        self.import_btn.pack(side='right', padx=5, pady=5)
 
     def import_file(self):
         """File button has been clicked"""
@@ -255,13 +255,13 @@ class ResultsTab(NotebookTab):
             img_size=img_size, text='Export Results', 
             compound=compound, command=self.root.export_results,
             style=style
-        ).pack(side='right', padx=5)
+        ).pack(side='right', padx=5, pady=5)
         # Create filter button
         ImageButton(
             self.head, img_fn=f'filter_{colour}.png', 
             img_size=img_size, text='Filter Results', style=style,
             compound=compound, command=self.show_filter_msgbox
-        ).pack(side='right', padx=0, pady=5)
+        ).pack(side='right', pady=5)
         # Create treeview widget
         self.tree = CustomTreeView(
             self, style='Selectable.Treeview', anchor='w',
@@ -284,7 +284,8 @@ class ResultsTab(NotebookTab):
 
     def update_tree(self, desc:str, data:list[list]):
         """Update treeview with new data"""
-        self.head_desc.set(desc)
+        if desc:
+            self.head_desc.set(desc)
         self.tree.update_tree(data=data)
 
     def save(self, fp:str=''):
@@ -318,7 +319,8 @@ class ContentTab(NotebookTab):
         self.content_field.config(wraplength=self.winfo_width() - 10)
 
     def update_content(self, desc:str, content:str):
-        self.head_desc.set(desc)
+        if desc:
+            self.head_desc.set(desc)
         self.content_field.config(text=content)
 
 
