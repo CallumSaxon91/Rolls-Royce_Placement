@@ -419,10 +419,23 @@ class SettingsTab(NotebookTab):
         cfg = self.master.master.cfg
         for name, setting in cfg.create_settings_vars():
             setattr(self, name, setting)
-        ttk.Button(
-            self.head, text='Restore Defaults', style='Head.TButton',
+        # Values for image buttons
+        colour = self.colour_mode.get()
+        img_size = (18, 16)
+        style='Compound.TButton'
+        compound='right'
+        root = self.nametowidget('')
+        ImageButton(
+            self.head, img_fn=f'restart_{colour}.png', 
+            img_size=img_size, text='Restart App', compound=compound,
+            style=style, command=lambda: root.restart(root)
+        ).pack(side='right', padx=5, pady=(5, 6))
+        ImageButton(
+            self.head, img_fn=f'restore_{colour}.png',
+            img_size=img_size, text='Restore Defaults',
+            compound=compound, style=style,
             command=lambda: cfg.validate(force_restore=True)
-        ).pack(side='right', padx=(5, 7), pady=5)
+        ).pack(side='right', pady=5)
         # Setting widgets will be packed into this frame
         frame = ttk.Frame(self)
         frame.pack(side='top', anchor='w')
