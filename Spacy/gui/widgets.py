@@ -60,7 +60,7 @@ class AddressBar(ttk.Frame):
         colour = self.settings.colour_mode.get()
         img_size = (18, 16)
         compound = 'right'
-        style='Compound.TButton'
+        style='AddressBarImg.TButton'
         self.import_btn = ImageButton(
             self, img_fn=f'import_{colour}.png', img_size=img_size,
             text='Open File', compound=compound,
@@ -76,16 +76,17 @@ class AddressBar(ttk.Frame):
     def update_gui_state(self, searching:bool):
         """Enables or disables addressbar widgets"""
         log.debug(f'Updating address bar GUI. Disabled = {searching}')
+        state = 'disabled' if searching else 'normal'
+        self.begin_btn.config(state=state)
+        self.import_btn.config(state=state)
         if searching:
             self.progress_bar.pack(self.input_field.pack_info())
             self.progress_bar.start(10)
             self.input_field.pack_forget()
-            self.begin_btn.config(state='disabled')
             return
         self.input_field.pack(self.progress_bar.pack_info())
         self.progress_bar.pack_forget()
         self.progress_bar.stop()
-        self.begin_btn.config(state='normal')
 
     def on_start_btn(self):
         self.master.nlp(self.address.get())
