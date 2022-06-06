@@ -15,7 +15,7 @@ if __name__ == '__main__':
     directories = AppDirs(APP_NAME)
     validate_dirs(directories)
     setup_logs(directories)
-    # GUI main loop
+    # Create and start GUI
     Root(
         name=APP_NAME,
         dirs=directories

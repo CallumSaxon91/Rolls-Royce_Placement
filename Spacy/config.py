@@ -91,9 +91,10 @@ class ConfigManager(ConfigParser):
         for key, value in self['settings'].items():
             try:
                 value = strtobool(value)
-                var = BooleanVar(name=key)
+                var = BooleanVar
             except ValueError:
-                var = StringVar(name=key)
+                var = StringVar
+            var = var(name=key)
             var.set(value)
             variables.append((key, var))
         return variables
