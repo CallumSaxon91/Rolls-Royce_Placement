@@ -1,6 +1,5 @@
 import csv
 import logging
-import subprocess
 import ctypes as ct
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -29,10 +28,11 @@ class Root(tk.Tk):
     _parsed: list[list[str]]
     pipeline: Language
 
-    def __init__(self, name:str, dirs:AppDirs):
+    def __init__(self, name:str, dirs:AppDirs, restart_func):
         super().__init__()
         self.dirs = dirs
         self.cfg = ConfigManager(dirs)
+        self.restart = restart_func
 
         # Configure root window
         self.title(name)
