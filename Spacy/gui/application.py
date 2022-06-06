@@ -79,7 +79,7 @@ class Root(tk.Tk):
 
     def start(self):
         """Start the GUI application"""
-        self.load_spacy_pipeline(name='en_core_web_trf')
+        self.load_spacy_pipeline(name='en_core_web_sm')
         self.mainloop()
 
     def load_spacy_pipeline(self, name):
@@ -142,7 +142,7 @@ class Root(tk.Tk):
         writer = csv.writer(file)
         writer.writerows(tree_data)
         file.close()
-        log.info(f'Exported {len(tree_data)} rows to {file}')
+        log.info(f'Exported {len(tree_data)} rows to {file.name}')
 
     def nlp(self, address:str):
         """Collect, parse and output data to results tab"""
