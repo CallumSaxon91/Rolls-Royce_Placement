@@ -288,3 +288,40 @@ class CustomMessageBox(tk.Toplevel):
         self.grab_set()
         # Pause root until toplevel is destroyed
         self.root.wait_window(self)
+
+class ScrollableFrame(ttk.Frame):
+    """Tkinter ttk Frame with scrolling capibilities"""
+    def __init__(self, *args, **kw):
+        super().__init__(*args, **kw)
+        self.canvas = tk.Canvas(
+            self, background='gray50', highlightthickness=0
+        )
+        self.canvas.pack(side='left', fill='both', expand=True)
+        self.canvas.bind(
+            '<Configure>', self._on_canvas_resize, add=True
+        )
+        self.scrollbar = ttk.Scrollbar(self, command=self.canvas.yview)
+        self.scrollbar.pack(side='right', fill='y')
+        self.frame = ttk.Frame(self.canvas, style='TFrame')
+        self.canvas.create_window(
+            (0, 0), anchor='nw',
+            window=self.frame
+        )
+        self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.frame.bind(
+            '<Configure>',
+            lambda: self.canvas.config(
+                scrollregion=self.canvas.bbox("all")
+            )
+        )
+        for i in range(50):
+            ttk.Label(self.frame, text="Sample scrolling label").pack()
+        self._on_canvas_resize()
+
+    def _on_canvas_resize(self, event=None):
+        w = self.canvas.winfo_width()
+        h = self.canvas.winfo_height()
+        self.frame.config(width=w)
+        if self.frame.winfo_width() < h:
+            self.frame.config(height=h)
+        print(w, h)

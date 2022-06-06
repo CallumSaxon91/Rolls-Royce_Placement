@@ -4,7 +4,8 @@ from tkinter import ttk
 
 from .widgets import (
     ImageButton, CustomTreeView, CustomMessageBox,
-    RadioSetting, TextSetting, CheckBoxSetting
+    RadioSetting, TextSetting, CheckBoxSetting,
+    ScrollableFrame
 )
 
 
@@ -22,11 +23,13 @@ class Notebook(ttk.Notebook):
         self.results_tab = ResultsTab(self)
         self.contents_tab = ContentTab(self)
         self.help_tab = HelpTab(self)
+        self.test_tab = TestTab(self)
         # Show notebook tabs
         self.add(self.results_tab, text='Results')
         self.add(self.contents_tab, text='Content')
         self.add(self.legend_tab, text='Legend')
         self.add(self.settings_tab, text='Settings')
+        self.add(self.test_tab, text='Testing')
         # self.add(self.help_tab, text='Help')
 
 
@@ -236,6 +239,15 @@ class HelpTab(NotebookTab):
         )
         test_btn.pack()
         ttk.Label(self, text='testtext').pack()
+
+
+class TestTab(NotebookTab):
+    """Tab containing helpful info on how to use the app"""
+    def __init__(self, master):
+        log.debug('Initializing test tab')
+        super().__init__(master, title='Test')
+        scrollframe = ScrollableFrame(self)
+        scrollframe.pack(fill='both', expand=True)
 
 
 class FilterMessageBox(CustomMessageBox):
