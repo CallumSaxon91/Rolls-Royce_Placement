@@ -60,7 +60,8 @@
                 "foreground": [["pressed", "foreground-primary"]],
                 "background": [
                     ["pressed", "background-accent_1"],
-                    ["active", "background-tertiary"]
+                    ["active", "background-tertiary"],
+                    ["disabled", "background-primary"]
                 ],
                 "lightcolor": [
                     ["pressed", "background-accent_1"],
@@ -72,7 +73,8 @@
                 ],
                 "focuscolor": [
                     ["pressed", "background-accent_1"],
-                    ["active", "background-tertiary"]
+                    ["active", "background-tertiary"],
+                    ["disabled", "background-primary"]
                 ],
                 "relief": [["pressed", "sunken"]]
             }
@@ -104,19 +106,58 @@
                 "borderwidth": 2,
                 "relief": "groove",
                 "padding": [10, 0, 10, 0]
+            },
+            "map": {
+                "foreground": [["pressed", "foreground-primary"]],
+                "background": [
+                    ["pressed", "background-accent_1"],
+                    ["active", "background-tertiary"],
+                    ["disabled", "background-tertiary"]
+                ],
+                "lightcolor": [
+                    ["pressed", "background-accent_1"],
+                    ["active", "background-tertiary"]
+                ],
+                "darkcolor": [
+                    ["pressed", "background-secondary"],
+                    ["active", "background-tertiary"]
+                ],
+                "focuscolor": [
+                    ["pressed", "background-accent_1"],
+                    ["active", "background-tertiary"],
+                    ["disabled", "background-tertiary"]
+                ],
+                "relief": [["pressed", "sunken"]]
             }
         },
         "AddressBarImg.TButton": {
             "configure": {
+                "foreground": "foreground-primary",
                 "background": "background-primary",
                 "focuscolor": "background-primary",
-                "relief": "flat",
-                "borderwidth": 0,
-                "padding": [3, 0, 3, 0]
+                "padding": [5, 0, 3, 0]
             },
             "map": {
-                "background": [["pressed", "background-primary"]],
-                "focuscolor": [["pressed", "background-primary"]]
+                "foreground": [["pressed", "foreground-primary"]],
+                "background": [
+                    ["pressed", "background-accent_1"],
+                    ["active", "background-tertiary"],
+                    ["disabled", "background-tertiary"]
+                ],
+                "lightcolor": [
+                    ["pressed", "background-accent_1"],
+                    ["active", "background-tertiary"]
+                ],
+                "darkcolor": [
+                    ["pressed", "background-secondary"],
+                    ["active", "background-tertiary"]
+                ],
+                "focuscolor": [
+                    ["pressed", "background-accent_1"],
+                    ["active", "background-tertiary"],
+                    ["disabled", "background-tertiary"]
+                ],
+                "relief": [["pressed", "sunken"]]
             }
         },
         "TEntry": {
@@ -144,7 +185,7 @@
                 "background": "foreground-positive",
                 "lightcolor": "foreground-positive",
                 "darkcolor": "foreground-positive",
-                "troughcolor": "background-primary"
+                "troughcolor": "background-tertiary"
             }
         },
         "ArrowLess.Vertical.TScrollbar": {
