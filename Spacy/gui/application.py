@@ -1,5 +1,6 @@
 import csv
 import logging
+import subprocess
 import ctypes as ct
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -27,7 +28,7 @@ class Root(tk.Tk):
     _unparsed: str
     _parsed: list[list[str]]
     pipeline: Language
-    
+
     def __init__(self, name:str, dirs:AppDirs):
         super().__init__()
         self.dirs = dirs
@@ -60,7 +61,7 @@ class Root(tk.Tk):
             'Width:', self.winfo_width(),
             '\nHeight:', self.winfo_height()
         )
-    
+
     def debug_clear_results(self, event=None):
         nb = self.notebook
         nb.results_tab.tree.delete(*nb.results_tab.tree.get_children())
@@ -78,14 +79,26 @@ class Root(tk.Tk):
 
     def start(self):
         """Start the GUI application"""
-        self.load_spacy_pipeline(name='en_core_web_sm')
+        self.load_spacy_pipeline(name='en_core_web_trf')
         self.mainloop()
 
     def load_spacy_pipeline(self, name):
-        """Sets new attr to Root as pipeline"""
-        log.debug('Loading spacy pipeline')
-        def load():
-            self.pipeline = get_pipe(name)
+        """Sets new attr as pipeline"""
+        def load(retries=3):
+            if retries <= 0:
+                log.error(
+                    'Exhausted retries for loading spacy pipeline'
+                )
+                return
+            log.debug(f'Attempting to load spacy pipeline: {name}')
+            try:
+                self.pipeline = get_pipe(name)
+            except OSError:
+                log.error(
+                    'Failed to load pipeline trying again in 3 seconds'
+                )
+                self.after(3000, lambda: load(retries-1))
+                return
             log.info('Loaded spacy pipeline')
         # Load pipeline on a separate thread because it can
         # take a while.
