@@ -1,11 +1,11 @@
-from os.path import dirname
+from os import path
 
 
 # Directories
-PATH = dirname(__file__)
-ASSETS_PATH = f'{PATH}/assets'
-THEME_PATH = f'{PATH}/theme'
-OUTPUT_PATH = f'{PATH}/output'
+PATH = path.dirname(__file__)
+ASSETS_PATH = path.join(PATH, 'assets')
+THEME_PATH = path.join(PATH, 'theme')
+OUTPUT_PATH = path.join(PATH, 'output')
 
 # Other
 ODD = 'odd'
