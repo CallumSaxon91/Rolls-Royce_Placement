@@ -56,9 +56,7 @@ class AddressBar(ttk.Frame):
             orient='horizontal',
             mode='indeterminate',
         )
-        # Import/Export buttons
-        # Import: open file and parse data
-        # Export: save result to output file
+        # Import from file button
         colour = self.settings.colour_mode.get()
         img_size = (18, 16)
         compound = 'right'
@@ -68,24 +66,12 @@ class AddressBar(ttk.Frame):
             text='Open File', compound=compound,
             command=self.import_file, style=style
         )
-        self.import_btn.pack(side='right', padx=(5, 0))
-        self.export_btn = ImageButton(
-            self, img_fn=f'export_{colour}.png', img_size=img_size,
-            text='Export Results', compound=compound,
-            command=self.export_results, style=style
-        )
-        self.export_btn.pack(
-            side='right', padx=5, before=self.import_btn
-        )
+        self.import_btn.pack(side='right', padx=5)
 
     def import_file(self):
         """File button has been clicked"""
         fp, _ = self.master.import_string()
         self.address.set(fp)
-
-    def export_results(self):
-        """Export results to output file"""
-        self.master.export_results()
 
     def update_gui_state(self, searching:bool):
         """Enables or disables addressbar widgets"""
@@ -258,12 +244,23 @@ class ResultsTab(NotebookTab):
         super().__init__(master, title='Results')
         self.root = master.master
         colour = master.settings_tab.colour_mode.get()
-        # Create filter button widget
+        # Values for ImageButtons
+        img_size=(18, 16)
+        compound = 'right'
+        style='Compound.TButton'
+        # Create export button
         ImageButton(
-            self.head, img_fn=f'filter_{colour}.png', img_size=(18, 16),
-            text='Filter Results', style='Compound.TButton',
-            compound='right', command=self.show_filter_msgbox
-        ).pack(side='right', padx=(5, 7), pady=5)
+            self.head, img_fn=f'export_{colour}.png', 
+            img_size=img_size, text='Export Results', 
+            compound=compound, command=self.root.export_results,
+            style=style
+        ).pack(side='right', padx=5)
+        # Create filter button
+        ImageButton(
+            self.head, img_fn=f'filter_{colour}.png', 
+            img_size=img_size, text='Filter Results', style=style,
+            compound=compound, command=self.show_filter_msgbox
+        ).pack(side='right', padx=0, pady=5)
         # Create treeview widget
         self.tree = CustomTreeView(
             self, style='Selectable.Treeview', anchor='w',
