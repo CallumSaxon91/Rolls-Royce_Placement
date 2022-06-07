@@ -48,8 +48,14 @@ class CustomTreeView(ttk.Treeview):
         # Configure treeview
         self.after(10, self._setup_tag_colours)
         self._set_headings(headings, anchor)
-        if include_scrollbar:
-            self._build_scrollbar()
+        self.scrollbar = ttk.Scrollbar(
+            self.master, orient='vertical', command=self.yview,
+            style='ArrowLess.Vertical.TScrollbar'
+        )
+        self.scrollbar.pack(side='right', fill='y')
+        self.configure(yscrollcommand=self.scrollbar.set)
+        # if include_scrollbar:
+        #     self._build_scrollbar()
 
     def _setup_tag_colours(self):
         return  # disabled
@@ -67,7 +73,7 @@ class CustomTreeView(ttk.Treeview):
         self.configure(yscrollcommand=self.scrollbar.set)
         # Pack the scrollbar after displaying the treeview
         def pack():
-            self.scrollbar.pack(side='right', fill='y', before=self)
+            self.scrollbar.pack(side='right', fill='y')
             self.unbind('<Map>')
         self.bind('<Map>', lambda e: pack())
 

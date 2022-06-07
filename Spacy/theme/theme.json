@@ -210,7 +210,8 @@
                 "background": "background-primary",
                 "focuscolor": "background-primary",
                 "indicatorforeground": "foreground-primary",
-                "indicatorbackground": "background-primary"
+                "indicatorbackground": "background-primary",
+                "indicatorrelief": "solid"
             }
         },
         "SettingWidget.TCheckbutton": {
