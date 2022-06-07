@@ -9,7 +9,11 @@ from constants import APP_NAME
 
 log = logging.getLogger(__name__)
 
-if __name__ == '__main__':
+def restart(root):
+    root.destroy()
+    main()
+
+def main():
     log.info('Starting application')
     # Validate app directories exist and setup logging
     directories = AppDirs(APP_NAME)
@@ -18,7 +22,12 @@ if __name__ == '__main__':
     # Create and start GUI
     Root(
         name=APP_NAME,
-        dirs=directories
+        dirs=directories,
+        restart_func=restart
     ).start()
     # This line will only be read if the GUI has been closed properly
     log.info('Exited application successfully')
+
+if __name__ == '__main__':
+    main()
+    

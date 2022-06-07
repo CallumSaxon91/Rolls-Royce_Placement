@@ -1,8 +1,10 @@
 import json
 import logging
+import tkinter as tk
 from tkinter import ttk, font as tkfont
 
 from constants import THEME_PATH
+from utils import get_children
 
 
 log = logging.getLogger(__name__)
@@ -40,6 +42,13 @@ class Style(ttk.Style):
                 colour = self._convert_colour(item[1])
                 self.theme['settings'][widget]['map'][option][value.index(item)][1] = colour
 
+    def _prep_tk_widget(self, widget):
+        colours = self.colours[self.colour_mode]
+        if isinstance(widget, tk.Canvas):
+            widget.configure(
+                background=colours['background']['primary']
+            )
+
     def _prep_theme(self):
         settings = self.theme['settings']
         for widget, w_content in settings.items():
@@ -57,6 +66,8 @@ class Style(ttk.Style):
                             'Unknown section in theme file ' \
                             f'{widget}-{section}'
                         )
+        for widget in get_children(self.master):
+            self._prep_tk_widget(widget)
 
     def _load_colour_file(self, colours_filename:str):
         with open(

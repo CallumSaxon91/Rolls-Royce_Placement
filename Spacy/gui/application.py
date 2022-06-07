@@ -1,6 +1,5 @@
 import csv
 import logging
-import subprocess
 import ctypes as ct
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -15,7 +14,8 @@ from spacy import load as get_pipe
 from utils import parse_string_content, web_scrape
 from constants import ASSETS_PATH
 from config import ConfigManager
-from .widgets import Notebook, AddressBar
+from .addressbar import AddressBar
+from .notebook import Notebook
 from .style import Style
 
 
@@ -29,14 +29,16 @@ class Root(tk.Tk):
     _parsed: list[list[str]]
     pipeline: Language
 
-    def __init__(self, name:str, dirs:AppDirs):
+    def __init__(self, name:str, dirs:AppDirs, restart_func):
         super().__init__()
         self.dirs = dirs
         self.cfg = ConfigManager(dirs)
+        self.restart = restart_func
 
         # Configure root window
         self.title(name)
         self.geometry('700x400')
+        self.minsize(500, 370)
         self.iconbitmap(f'{ASSETS_PATH}/icon.ico')
 
         # Create and show controls
@@ -65,7 +67,7 @@ class Root(tk.Tk):
     def debug_clear_results(self, event=None):
         nb = self.notebook
         nb.results_tab.tree.delete(*nb.results_tab.tree.get_children())
-        nb.contents_tab.content_field.delete('1.0', 'end')
+        nb.contents_tab.content_field.config(text='')
 
     def set_dark_titlebar(self):
         """(Windows 11 Only) Change titlebar to dark variant"""
@@ -79,7 +81,7 @@ class Root(tk.Tk):
 
     def start(self):
         """Start the GUI application"""
-        self.load_spacy_pipeline(name='en_core_web_sm')
+        self.load_spacy_pipeline(name='en_core_web_trf')
         self.mainloop()
 
     def load_spacy_pipeline(self, name):
@@ -89,6 +91,7 @@ class Root(tk.Tk):
                 log.error(
                     'Exhausted retries for loading spacy pipeline'
                 )
+                self.addbar.update_gui_state(searching=False)
                 return
             log.debug(f'Attempting to load spacy pipeline: {name}')
             try:
@@ -100,6 +103,9 @@ class Root(tk.Tk):
                 self.after(3000, lambda: load(retries-1))
                 return
             log.info('Loaded spacy pipeline')
+            self.addbar.update_gui_state(searching=False)
+        # Disable GUI that requires pipeline to be loaded
+        self.addbar.update_gui_state(searching=True)
         # Load pipeline on a separate thread because it can
         # take a while.
         thread = Thread(target=load)
