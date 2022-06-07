@@ -18,7 +18,8 @@ defaults = {
         'auto_save_path': str(OUTPUT_PATH),
         'default_url': 'https://en.wikipedia.org/wiki/',
         'group_entities': 'no',
-        'colour_mode': 'light'
+        'colour_mode': 'light',
+        'pipeline': 'speed'
     },
     'entities': {
         'PERSON': 'People, including fictional characters.',
