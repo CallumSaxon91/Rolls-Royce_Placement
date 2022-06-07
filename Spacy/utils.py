@@ -97,3 +97,12 @@ def parse_string_content(pipeline:Language, string:str) -> list[list]:
 def parity(integer:int) -> str:
     """Returns 'even' or 'odd' when given an integer"""
     return EVEN if integer % 2 == 0 else ODD
+
+def get_children(widget) -> list:
+    children = widget.winfo_children()
+    for child in children:
+        inner_children = child.winfo_children()
+        if inner_children:
+            children.extend(inner_children)
+    return children
+
