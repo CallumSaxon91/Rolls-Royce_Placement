@@ -9,7 +9,9 @@ from typing import TextIO
 from itertools import count
 from PIL import Image, ImageTk
 
-from constants import ASSETS_PATH, PATH, FILENAME_PREFIX_FORMAT
+from constants import (
+    ASSETS_PATH, PATH, FILENAME_PREFIX_FORMAT, ODD, EVEN
+)
 from exceptions import ImageNotFound
 
 
@@ -91,3 +93,7 @@ def parse_string_content(pipeline:Language, string:str) -> list[list]:
     except ValueError:
         pass
     return parsed.tolist()
+
+def parity(self, integer:int) -> str:
+    """Returns 'even' or 'odd' when given an integer"""
+    return EVEN if integer % 2 == 0 else ODD

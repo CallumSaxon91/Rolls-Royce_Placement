@@ -7,6 +7,7 @@ from .widgets import (
     RadioSetting, TextSetting, CheckBoxSetting,
     ScrollableFrame
 )
+from utils import parity
 
 
 log = logging.getLogger(__name__)
@@ -349,7 +350,7 @@ class FilterMessageBoxTab(NotebookTab):
         index = self.tree.index(focus)
         self.tree.delete(focus)
         self.tree.insert(
-            '', index, values=values, tags=(self.tree.parity(index),)
+            '', index, values=values, tags=(parity(index),)
         )
 
     # TODO: clean up repeating code from below.

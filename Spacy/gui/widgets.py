@@ -2,7 +2,7 @@ import logging
 import tkinter as tk
 from tkinter import ttk
 
-from utils import image, up_list
+from utils import image, up_list, parity
 from constants import ODD, EVEN
 
 
@@ -148,10 +148,6 @@ class CustomTreeView(ttk.Treeview):
             self.column(heading, anchor=anchor, width=100)
             self.heading(heading, text=heading.title())
 
-    def parity(self, integer:int) -> str:
-        """Returns 'even' or 'odd' when given an integer"""
-        return EVEN if integer % 2 == 0 else ODD
-
     def update_tree(self, data:list[list, list]) -> None:
         """Update the values in this treeview widget"""
         current_data = self.get_children()
@@ -170,7 +166,7 @@ class CustomTreeView(ttk.Treeview):
         self.delete(*current_data)
         i = 0
         for i, row in enumerate(self.filtered_data):
-            tag = self.parity(i)
+            tag = parity(i)
             self.insert('', 'end', values=row, tags=(tag,))
         log.debug(f'Completed update for {self}, item count: {i}')
 
