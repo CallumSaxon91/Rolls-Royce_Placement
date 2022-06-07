@@ -147,7 +147,7 @@ class SettingWidget(ttk.Frame):
 
     def on_update(self, *args):
         log.debug(f'Updating setting widget {self}')
-        cfg = self.master.master.master.master.cfg  # this is just bad
+        cfg = self.master.master.master.master.master.master.cfg  # this is just bad
         try:
             cfg.update('settings', self.var)
         except AttributeError:
@@ -220,13 +220,13 @@ class ScrollableFrame(ttk.Frame):
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
         self.canvas = tk.Canvas(
-            self, background='gray50', highlightthickness=0
+            self, highlightthickness=0
         )
         self.canvas.pack(side='left', fill='both', expand=True)
-        self.canvas.bind(
-            '<Configure>', self._on_canvas_resize, add=True
+        self.scrollbar = ttk.Scrollbar(
+            self, orient='vertical', command=self.canvas.yview,
+            style='ArrowLess.Vertical.TScrollbar'
         )
-        self.scrollbar = ttk.Scrollbar(self, command=self.canvas.yview)
         self.scrollbar.pack(side='right', fill='y')
         self.frame = ttk.Frame(self.canvas, style='TFrame')
         self.canvas.create_window(
@@ -234,20 +234,24 @@ class ScrollableFrame(ttk.Frame):
             window=self.frame
         )
         self.canvas.configure(yscrollcommand=self.scrollbar.set)
+        self.canvas.bind('<MouseWheel>', self._on_mousewheel)
+        self.canvas.bind_all(
+            '<MouseWheel>', self._on_mousewheel
+        )
         self.frame.bind(
             '<Configure>',
-            lambda: self.canvas.config(
+            lambda e: self.canvas.config(
                 scrollregion=self.canvas.bbox("all")
             )
         )
-        for i in range(50):
-            ttk.Label(self.frame, text="Sample scrolling label").pack()
-        self._on_canvas_resize()
+        self.frame.bind('<Enter>', self._bind_mousewheel)
+        self.frame.bind('<Leave>', self._unbind_mousewheel)
+    
+    def _bind_mousewheel(self, event):
+        self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
 
-    def _on_canvas_resize(self, event=None):
-        w = self.canvas.winfo_width()
-        h = self.canvas.winfo_height()
-        self.frame.config(width=w)
-        if self.frame.winfo_width() < h:
-            self.frame.config(height=h)
-        print(w, h)
+    def _unbind_mousewheel(self, event):
+        self.canvas.unbind_all('<MouseWheel>')
+
+    def _on_mousewheel(self, event):
+        self.canvas.yview_scroll(int(-1*(event.delta/120)), 'units')
