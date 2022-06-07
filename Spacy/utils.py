@@ -94,6 +94,6 @@ def parse_string_content(pipeline:Language, string:str) -> list[list]:
         pass
     return parsed.tolist()
 
-def parity(self, integer:int) -> str:
+def parity(integer:int) -> str:
     """Returns 'even' or 'odd' when given an integer"""
     return EVEN if integer % 2 == 0 else ODD
