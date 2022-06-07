@@ -272,14 +272,15 @@
             "configure": {
                 "foreground": "foreground-primary",
                 "background": "background-primary",
-                "highlightthickness": 0
+                "highlightthickness": 0,
+                "rowheight": 25
             },
             "layout": [["treeview.treearea", {"sticky": "nsew"}]]
         },
         "Treeview.Heading": {
             "configure": {
                 "foreground": "foreground-primary",
-                "background": "background-secondary"
+                "background": "background-primary"
             }
         },
         "Selectable.Treeview": {

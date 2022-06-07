@@ -38,7 +38,7 @@ class Root(tk.Tk):
         # Configure root window
         self.title(name)
         self.geometry('700x400')
-        self.minsize(500, 350)
+        self.minsize(500, 370)
         self.iconbitmap(f'{ASSETS_PATH}/icon.ico')
 
         # Create and show controls
