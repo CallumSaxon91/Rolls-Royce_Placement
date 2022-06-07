@@ -81,7 +81,7 @@ class ResultsTab(NotebookTab):
             headings=('words', 'entity type', 'part of speech')
         )
         self.tree.pack(
-            side='bottom', fill='both', expand=True, before=self.head
+            side='left', fill='both', expand=True
         )
         # TODO: could edit this to use a save from the config file
         self.tree.set_filter(
@@ -142,7 +142,7 @@ class LegendTab(NotebookTab):
         self.tree = CustomTreeView(
             self, headings=('entities', '', 'parts of speech', '')
         )
-        self.tree.pack(side='bottom', fill='both', expand=True, before=self.head)
+        self.tree.pack(side='left', fill='both', expand=True)
         # populate tree
         settings = master.master.cfg
         entities = settings['entities']
@@ -150,7 +150,7 @@ class LegendTab(NotebookTab):
         for i, (entity, pos) in enumerate(
             zip(entities.items(), word_classes.items())
         ):
-            tag = 'even' if i % 2 == 0 else 'odd'
+            tag = parity(i)
             values = entity + pos
             values = [
                 v.upper() if values.index(v) % 2 == 0 else v \
@@ -225,6 +225,13 @@ class SettingsTab(NotebookTab):
             var=self.colour_mode, options=('light', 'dark')
         )
         self.colour_mode_radio.pack(pack_info)
+        self.pipeline_radio = RadioSetting(
+            frame, label='NLP Pipeline',
+            desc='Preference for NLP Pipeline (restart required)',
+            options=('speed', 'accuracy'),
+            var=self.pipeline,
+        )
+        self.pipeline_radio.pack(pack_info)
 
 
 # WIP

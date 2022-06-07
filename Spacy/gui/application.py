@@ -81,7 +81,9 @@ class Root(tk.Tk):
 
     def start(self):
         """Start the GUI application"""
-        self.load_spacy_pipeline(name='en_core_web_trf')
+        pipeline = self.notebook.settings_tab.pipeline.get()
+        pipe_suffix = 'sm' if pipeline == 'speed' else 'trf'
+        self.load_spacy_pipeline(name=f'en_core_web_{pipe_suffix}')
         self.mainloop()
 
     def load_spacy_pipeline(self, name):
