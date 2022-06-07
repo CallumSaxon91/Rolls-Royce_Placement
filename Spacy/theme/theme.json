@@ -21,7 +21,7 @@
             "configure": {
                 "foreground": "foreground-primary",
                 "background": "background-secondary",
-                "font": "TkDefaultFont 8 bold"
+                "font": "TkDefaultFont 9 bold"
             }
         },
         "HeadTitle.TLabel": {
@@ -280,7 +280,8 @@
         "Treeview.Heading": {
             "configure": {
                 "foreground": "foreground-primary",
-                "background": "background-primary"
+                "background": "background-primary",
+                "padding": [0, 4, 0, 4]
             }
         },
         "Selectable.Treeview": {
