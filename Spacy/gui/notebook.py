@@ -186,10 +186,12 @@ class SettingsTab(NotebookTab):
             command=lambda: cfg.validate(force_restore=True)
         ).pack(side='right', pady=5)
         # Setting widgets will be packed into this frame
-        frame = ttk.Frame(self)
-        frame.pack(side='top', anchor='w')
+        scrollframe = ScrollableFrame(self)
+        scrollframe.pack(fill='both', expand=True)
+        frame = scrollframe.frame
         pack_info = {
-            'fill': 'x', 'anchor': 'w', 'padx': 10, 'pady': 10
+            'fill': 'x', 'side': 'top', 'anchor': 'w',
+            'padx': 10, 'pady': 10
         }
         # Create setting widgets
         self.auto_save_checkbox = CheckBoxSetting(
@@ -216,7 +218,7 @@ class SettingsTab(NotebookTab):
                  'line',
             var=self.group_entities
         )
-        #self.group_entities_checkbox.pack(pack_info)
+        self.group_entities_checkbox.pack(pack_info)
         self.colour_mode_radio = RadioSetting(
             frame, label='Colour Theme',
             desc='The current colour theme (restart required)',
