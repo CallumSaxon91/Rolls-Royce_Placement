@@ -118,10 +118,7 @@ class ResultsTab(NotebookTab):
 class ContentTab(NotebookTab):
     def __init__(self, master, title='Content', desc=''):
         log.debug('Initializing content tab')
-        super().__init__(master, title=title)
-        self.content_field = tk.Text(
-            self, bd=0, highlightthickness=0, font=('Segoe UI', 9)
-        )
+        super().__init__(master, title=title, desc=desc)
         self.content_field = ttk.Label(self, anchor='nw')
         self.content_field.pack(
             fill='both', expand=True, padx=5, pady=5

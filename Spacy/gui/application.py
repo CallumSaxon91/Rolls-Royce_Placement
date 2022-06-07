@@ -67,7 +67,7 @@ class Root(tk.Tk):
     def debug_clear_results(self, event=None):
         nb = self.notebook
         nb.results_tab.tree.delete(*nb.results_tab.tree.get_children())
-        nb.contents_tab.content_field.delete('1.0', 'end')
+        nb.contents_tab.content_field.config(text='')
 
     def set_dark_titlebar(self):
         """(Windows 11 Only) Change titlebar to dark variant"""
@@ -91,6 +91,7 @@ class Root(tk.Tk):
                 log.error(
                     'Exhausted retries for loading spacy pipeline'
                 )
+                self.addbar.update_gui_state(searching=False)
                 return
             log.debug(f'Attempting to load spacy pipeline: {name}')
             try:
@@ -102,6 +103,9 @@ class Root(tk.Tk):
                 self.after(3000, lambda: load(retries-1))
                 return
             log.info('Loaded spacy pipeline')
+            self.addbar.update_gui_state(searching=False)
+        # Disable GUI that requires pipeline to be loaded
+        self.addbar.update_gui_state(searching=True)
         # Load pipeline on a separate thread because it can
         # take a while.
         thread = Thread(target=load)
