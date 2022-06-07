@@ -15,12 +15,6 @@ class AddressBar(ttk.Frame):
         log.debug('Initializing address bar widget')
         super().__init__(master, style='AddressBar.TFrame')
         self.settings = self.master.notebook.settings_tab
-        # Begin parsing process button
-        self.begin_btn = ttk.Button(
-            self, text='  Start  ', style='AddressBar.TButton',
-            command=self.on_start_btn
-        )
-        self.begin_btn.pack(side='left', fill='y', padx=5, pady=5)
         # Value in the address bar input field
         self.address = tk.StringVar(
             value=self.settings.default_url.get()
@@ -42,11 +36,21 @@ class AddressBar(ttk.Frame):
             orient='horizontal',
             mode='indeterminate',
         )
-        # Import from file button
+        # Values for image buttons
         colour = self.settings.colour_mode.get()
         img_size = (18, 16)
         compound = 'right'
         style='AddressBarImg.TButton'
+        # Begin parsing process button
+        self.begin_btn = ImageButton(
+            self, img_fn=f'search_{colour}.png', img_size=img_size,
+            text='Search', compound=compound, 
+            style=style, command=self.on_start_btn
+        )
+        self.begin_btn.pack(
+            side='left', fill='y', padx=5, pady=5, before=self.input_field
+        )
+        # Import from file button
         self.import_btn = ImageButton(
             self, img_fn=f'import_{colour}.png', img_size=img_size,
             text='Open File', compound=compound,
