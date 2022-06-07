@@ -14,7 +14,7 @@ from spacy import load as get_pipe
 from utils import parse_string_content, web_scrape
 from constants import ASSETS_PATH
 from config import ConfigManager
-from .widgets import AddressBar
+from .addressbar import AddressBar
 from .notebook import Notebook
 from .style import Style
 
