@@ -78,7 +78,7 @@ class ResultsTab(NotebookTab):
         ).pack(side='right', pady=5)
         # Create treeview widget
         self.tree = CustomTreeView(
-            self, style='Selectable.Treeview', anchor='w',
+            self, style='Treeview', anchor='w',
             headings=('words', 'entity type', 'part of speech')
         )
         self.tree.pack(
@@ -339,7 +339,7 @@ class FilterMessageBoxTab(NotebookTab):
         super().__init__(*args, **kw)
         self.tree = CustomTreeView(
             self, headings=('include', 'exlude'), anchor='w',
-            style='Selectable.Treeview'
+            style='Treeview'
         )
         self.tree.pack(fill='both', expand=True)
         ttk.Separator(self, orient='horizontal').pack(fill='x')

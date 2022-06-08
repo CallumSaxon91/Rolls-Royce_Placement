@@ -272,19 +272,17 @@
                 "highlightthickness": 0,
                 "rowheight": 25
             },
-            "layout": [["treeview.treearea", {"sticky": "nsew"}]]
+            "layout": [["treeview.treearea", {"sticky": "nsew"}]],
+            "map": {
+                "foreground": [["selected", "white"]],
+                "background": [["selected", "foreground-positive"]]
+            }
         },
         "Treeview.Heading": {
             "configure": {
                 "foreground": "foreground-primary",
                 "background": "background-tertiary",
                 "padding": [0, 3, 0, 3]
-            }
-        },
-        "Selectable.Treeview": {
-            "map": {
-                "foreground": [["selected", "white"]],
-                "background": [["selected", "foreground-positive"]]
             }
         },
         "TSeparator": {
