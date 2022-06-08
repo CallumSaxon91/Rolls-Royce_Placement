@@ -119,19 +119,22 @@ class ContentTab(NotebookTab):
     def __init__(self, master, title='Content', desc=''):
         log.debug('Initializing content tab')
         super().__init__(master, title=title, desc=desc)
-        self.content_field = ttk.Label(self, anchor='nw')
+        self.content_field = tk.Text(self)
         self.content_field.pack(
-            fill='both', expand=True, padx=5, pady=5
+            side='left', fill='both', expand=True
         )
-        self.content_field.bind('<Configure>', self.update_label_wrap)
- 
-    def update_label_wrap(self, event=None):
-        self.content_field.config(wraplength=self.winfo_width() - 10)
+        self.scrollbar = ttk.Scrollbar(
+            self, orient='vertical',
+            style='ArrowLess.Vertical.TScrollbar',
+            command=self.content_field.yview
+        )
+        self.scrollbar.pack(side='right', fill='y')
+        self.content_field.config(yscrollcommand=self.scrollbar.set)
 
     def update_content(self, desc:str, content:str):
-        if desc:
-            self.head_desc.set(desc)
-        self.content_field.config(text=content)
+        self.head_desc.set(desc)
+        self.content_field.delete('1.0', 'end')
+        self.content_field.insert('end', content)
 
 
 class LegendTab(NotebookTab):
