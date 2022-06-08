@@ -54,8 +54,8 @@ class Style(ttk.Style):
         if isinstance(widget, tk.Text):
             widget.configure(
                 foreground=fg['primary'], background=bg['primary'],
-                font=('Segoe UI', 9), relief='flat', padx=10, pady=10,
-                insertbackground=fg['primary']
+                font=('Segoe UI', 9), relief='flat', padx=10, pady=5,
+                insertbackground=fg['primary'], insertwidth=1
             )
 
     def _prep_theme(self):
