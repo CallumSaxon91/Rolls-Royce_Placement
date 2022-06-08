@@ -123,7 +123,7 @@ class Root(tk.Tk):
             filetypes=(('Text File', '*.txt'),)
         )
         # Return if no file is selected
-        if not file: return
+        if not file: return "No file selected" , ""
         data = file.read()
         file.close()
         log.debug('Successfully import string from text file')
