@@ -8,6 +8,7 @@ from .widgets import (
     ScrollableFrame
 )
 from utils import parity
+from constants import WIKI
 
 
 log = logging.getLogger(__name__)
@@ -87,6 +88,19 @@ class ResultsTab(NotebookTab):
         self.tree.set_filter(
             hidden_ents=[], hidden_pos=[], update=False
         )
+        self.tree.bind(
+            '<Double-Button-1>', self._on_tree_select, add=True
+        )
+
+    def _on_tree_select(self, event=None):
+        # Get selected item from treeview
+        focus = self.tree.focus()
+        item = self.tree.item(focus, option='values')
+        try: word = item[0]
+        except IndexError: return
+        # Set and search for that item
+        self.root.addbar.address.set(WIKI + word)
+        self.root.addbar.begin_btn.invoke()
 
     def show_filter_msgbox(self):
         # Not happy with constructing the msgbox every time,
