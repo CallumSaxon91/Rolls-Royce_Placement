@@ -44,9 +44,18 @@ class Style(ttk.Style):
 
     def _prep_tk_widget(self, widget):
         colours = self.colours[self.colour_mode]
+        fg = colours['foreground']
+        bg = colours['background']
+        # This code is bad. TODO: Rewrite
         if isinstance(widget, tk.Canvas):
             widget.configure(
-                background=colours['background']['primary']
+                background=bg['primary']
+            )
+        if isinstance(widget, tk.Text):
+            widget.configure(
+                foreground=fg['primary'], background=bg['primary'],
+                font=('Segoe UI', 9), relief='flat', padx=10, pady=10,
+                insertbackground=fg['primary']
             )
 
     def _prep_theme(self):
