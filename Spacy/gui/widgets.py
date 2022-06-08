@@ -244,19 +244,21 @@ class ScrollableFrame(ttk.Frame):
         self.canvas.bind_all(
             '<MouseWheel>', self._on_mousewheel
         )
-        self.frame.bind(
-            '<Configure>',
-            lambda e: self.canvas.config(
-                scrollregion=self.canvas.bbox("all")
-            )
-        )
+        self.frame.bind('<Configure>', self._on_frame_configure)
         self.frame.bind('<Enter>', self._bind_mousewheel)
         self.frame.bind('<Leave>', self._unbind_mousewheel)
+
+    def _on_frame_configure(self, event):
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
+        if self.frame.winfo_height() <= self.canvas.winfo_height():
+            self._unbind_mousewheel()
+            return
+        self._bind_mousewheel()
     
-    def _bind_mousewheel(self, event):
+    def _bind_mousewheel(self, event=None):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
 
-    def _unbind_mousewheel(self, event):
+    def _unbind_mousewheel(self, event=None):
         self.canvas.unbind_all('<MouseWheel>')
 
     def _on_mousewheel(self, event):
