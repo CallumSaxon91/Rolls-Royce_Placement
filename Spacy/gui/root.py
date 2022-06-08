@@ -81,38 +81,7 @@ class Root(tk.Tk):
 
     def start(self):
         """Start the GUI application"""
-        pipeline = self.notebook.settings_tab.pipeline.get()
-        pipe_suffix = 'sm' if pipeline == 'speed' else 'trf'
-        self.load_spacy_pipeline(name=f'en_core_web_{pipe_suffix}')
         self.mainloop()
-
-    def load_spacy_pipeline(self, name):
-        """Sets new attr as pipeline"""
-        def load(retries=3):
-            if retries <= 0:
-                log.error(
-                    'Exhausted retries for loading spacy pipeline'
-                )
-                self.addbar.update_gui_state(searching=False)
-                return
-            log.debug(f'Attempting to load spacy pipeline: {name}')
-            try:
-                self.pipeline = get_pipe(name)
-            except OSError:
-                log.error(
-                    'Failed to load pipeline trying again in 3 seconds'
-                )
-                self.after(3000, lambda: load(retries-1))
-                return
-            log.info('Loaded spacy pipeline')
-            self.addbar.update_gui_state(searching=False)
-        # Disable GUI that requires pipeline to be loaded
-        self.addbar.update_gui_state(searching=True)
-        # Load pipeline on a separate thread because it can
-        # take a while.
-        thread = Thread(target=load)
-        thread.daemon = True
-        thread.start()
 
     def import_string(self) -> tuple[str, str]:
         """Import a string from a text file and return it"""
@@ -183,9 +152,12 @@ class Root(tk.Tk):
             )
 
         def get_content_non_absolute():
-            with open(address, 'r') as file:
-                title = address.split('/')[-1]
-                content = file.read()
+            try:
+                with open(address, 'r') as file:
+                    title = address.split('/')[-1]
+                    content = file.read()
+            except FileNotFoundError:
+                return 'Content Not Found', ''
             title = title.split('.')[0].replace('_', ' ').title()
             return title, content
 
