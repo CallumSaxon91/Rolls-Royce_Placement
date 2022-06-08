@@ -277,8 +277,8 @@
         "Treeview.Heading": {
             "configure": {
                 "foreground": "foreground-primary",
-                "background": "background-primary",
-                "padding": [0, 4, 0, 4]
+                "background": "background-tertiary",
+                "padding": [0, 3, 0, 3]
             }
         },
         "Selectable.Treeview": {
