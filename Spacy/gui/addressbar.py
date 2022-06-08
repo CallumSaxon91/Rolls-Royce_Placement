@@ -38,7 +38,7 @@ class AddressBar(ttk.Frame):
         )
         # Values for image buttons
         colour = self.settings.colour_mode.get()
-        img_size = (18, 16)
+        img_size = (16, 16)
         compound = 'right'
         style='AddressBarImg.TButton'
         # Begin parsing process button

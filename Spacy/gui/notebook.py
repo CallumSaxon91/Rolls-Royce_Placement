@@ -60,7 +60,7 @@ class ResultsTab(NotebookTab):
         self.root = master.master
         colour = master.settings_tab.colour_mode.get()
         # Values for ImageButtons
-        img_size=(18, 16)
+        img_size=(16, 16)
         compound = 'right'
         style='Compound.TButton'
         # Create export button
