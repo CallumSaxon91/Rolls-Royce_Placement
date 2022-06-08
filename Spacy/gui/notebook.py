@@ -30,7 +30,7 @@ class Notebook(ttk.Notebook):
         self.add(self.contents_tab, text='Content')
         self.add(self.legend_tab, text='Legend')
         self.add(self.settings_tab, text='Settings')
-        self.add(self.test_tab, text='Testing')
+        # self.add(self.test_tab, text='Testing')
         # self.add(self.help_tab, text='Help')
 
 
