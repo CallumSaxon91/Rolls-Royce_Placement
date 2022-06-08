@@ -56,13 +56,18 @@ class CustomTreeView(ttk.Treeview):
         self.configure(yscrollcommand=self.scrollbar.set)
         # if include_scrollbar:
         #     self._build_scrollbar()
+        self.bind('<Motion>', self._set_hover_effect, add=True)
+
+    def _set_hover_effect(self, event):
+        item = self.identify_row(event.y)
+        self.tk.call(self, 'tag', 'remove', 'highlight')
+        self.tk.call(self, 'tag', 'add', 'highlight', item)
 
     def _setup_tag_colours(self):
-        return  # disabled
-        colour_mode = self.root.notebook.settings_tab.colour_mode.get()
-        colours = self.root.style.colours[colour_mode]['background']
-        self.tag_configure(ODD, background=colours['tertiary'])
-        self.tag_configure(EVEN, background=colours['accent_1'])
+        bg = self.root.style.colours[
+            self.root.notebook.settings_tab.colour_mode.get()
+        ]['background']
+        self.tag_configure('highlight', background=bg['secondary'])
 
     def _build_scrollbar(self):
         """Build scrollbar for treeview"""
@@ -104,6 +109,7 @@ class CustomTreeView(ttk.Treeview):
         for i, row in enumerate(self.filtered_data):
             tag = parity(i)
             self.insert('', 'end', values=row, tags=(tag,))
+            self.tag_bind(i, '<Motion>', self._set_hover_effect)
         log.debug(f'Completed update for {self}, item count: {i}')
 
     def filter(self, data:list[list, list]) -> list[str]:
