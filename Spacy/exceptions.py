@@ -9,6 +9,10 @@ class InvalidURLorFilePath(Exception):
     pass
 
 
+<<<<<<< Updated upstream
 class NoImageFound(Exception):
     """Image could not be found in assets"""
     pass
+=======
+#
+>>>>>>> Stashed changes

@@ -23,9 +23,27 @@ def _destroy_old_logs(dirs:AppDirs):
             path.unlink()
 
 def setup_logs(dirs:AppDirs) -> None:
+<<<<<<< Updated upstream
     file = open_new_file(dirs.user_log_dir)
     handler = logging.StreamHandler(file)
     handler.setLevel(logging.DEBUG)
     handler.setFormatter(logging.Formatter('[%(asctime)s] %(name)s %(levelname)s: %(message)s'))
     logging.basicConfig(level=logging.DEBUG, handlers=[handler])
     _destroy_old_logs(dirs)
+=======
+    file = open_new_file(dirs.user_log_dir, prefix='log')
+    handlers = (
+        logging.StreamHandler(file), 
+        logging.StreamHandler(sys.stdout)
+    )
+    for handler in handlers:
+        handler.setLevel(logging.DEBUG)
+        handler.setFormatter(
+            logging.Formatter(
+                '[%(asctime)s] %(name)s %(levelname)s: %(message)s'
+            )
+        )
+    logging.basicConfig(level=logging.DEBUG, handlers=handlers)
+    _destroy_old_logs(dirs)
+    #
+>>>>>>> Stashed changes
