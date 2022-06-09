@@ -36,9 +36,9 @@ class CustomTreeView(ttk.Treeview):
 
     def __init__(
         self, master:tk.Widget, headings:tuple[str],
-        anchor:str='w', style:str='Treeview',
-        include_scrollbar:bool=True, **kw
+        anchor:str='w', style:str='Treeview', **kw
     ):
+        log.info('Preparing treeview widget')
         super().__init__(
             master, columns=headings, show='headings', style=style,
             **kw
@@ -54,9 +54,8 @@ class CustomTreeView(ttk.Treeview):
         )
         self.scrollbar.pack(side='right', fill='y')
         self.configure(yscrollcommand=self.scrollbar.set)
-        # if include_scrollbar:
-        #     self._build_scrollbar()
         self.bind('<Motion>', self._set_hover_effect, add=True)
+        log.info('Successfully setup treeview')
 
     def _set_hover_effect(self, event):
         item = self.identify_row(event.y)

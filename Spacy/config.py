@@ -71,16 +71,20 @@ defaults = {
 class ConfigManager(ConfigParser):
     """Custom configuration manager"""
     def __init__(self, dirs:AppDirs):
+        log.info('Preparing config manager')
         super().__init__()
         self.dirs = dirs.user_config_dir
         self.fp = f'{self.dirs}/config.ini'
         self.validate()
         self.read(self.fp)
+        log.info('Successfully setup config manager')
 
     def validate(self, force_restore:bool=False):
         """Validate the contents and existance of the config"""
+        log.info('Validating config')
         if exists(self.fp) and not force_restore:
             return
+        log.info('Restoring configs')
         for section, options in defaults.items():
             self[section] = options
         with open(self.fp, 'w') as file: 
@@ -101,10 +105,11 @@ class ConfigManager(ConfigParser):
         return variables
 
     def update(self, section, variable):
+        log.info('Updating config file')
         value = variable.get()
         self.set(section, str(variable), str(value))
         with open(self.fp, 'w') as file:
             self.write(file)
         log.debug(
-            f'Updated config: [{section}]-[{variable}]-[{value}]'
+            f'Updated config: <{section}>-<{variable}>-<{value}>'
         )

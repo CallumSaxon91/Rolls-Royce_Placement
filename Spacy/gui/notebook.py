@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 class Notebook(ttk.Notebook):
     """Tkinter frame that ouputs results from spacy"""
     def __init__(self, master:tk.Tk):
-        log.debug('Initializing notebook')
+        log.debug('Preparing notebook')
         super().__init__(master)
         # Create notebook tabs
         self.legend_tab = LegendTab(self)
@@ -33,10 +33,12 @@ class Notebook(ttk.Notebook):
         self.add(self.settings_tab, text='Settings')
         # self.add(self.test_tab, text='Testing')
         # self.add(self.help_tab, text='Help')
+        log.info('Successfully setup notebook')
 
 
 class NotebookTab(ttk.Frame):
     def __init__(self, notebook, title:str, desc:str='', *args, **kw):
+        log.info('Preparing notebook tab')
         super().__init__(notebook, *args, **kw)
         self.head_title = tk.StringVar(value=title)
         self.head_desc = tk.StringVar(value=desc)
@@ -50,6 +52,7 @@ class NotebookTab(ttk.Frame):
             self.head, style='Head.TLabel',
             textvariable=self.head_desc
         ).pack(side='left', padx=(0, 5), pady=5)
+        log.info(f'Successfully setup notebook tab: {title}')
 
 
 class ResultsTab(NotebookTab):
