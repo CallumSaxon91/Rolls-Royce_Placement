@@ -193,14 +193,10 @@
                 "troughcolor": "background-primary",
                 "background": "background-tertiary",
                 "lightcolour": "background-primary",
-                "darkcolour": "background-primary",
-                "borderwidth": 0,
-                "relief": "flat",
-                "troughborderwidth": 0,
-                "highlightthickness": 0
+                "darkcolour": "background-primary"
             },
             "layout": [["Vertical.Scrollbar.trough",
-                {"children": [["Vertical.Scrollbar.thumb", 
+                {"children": [["Vertical.Scrollbar.thumb",
                                {"expand": "1", "sticky": "nswe"}]],
                  "sticky": "ns"}]]
         },
@@ -210,7 +206,8 @@
                 "background": "background-primary",
                 "focuscolor": "background-primary",
                 "indicatorforeground": "foreground-primary",
-                "indicatorbackground": "background-primary"
+                "indicatorbackground": "background-primary",
+                "indicatorrelief": "solid"
             }
         },
         "SettingWidget.TCheckbutton": {
@@ -250,7 +247,7 @@
                 "lightcolor": "background-primary",
                 "darkcolor": "background-primary",
                 "focuscolor": "background-primary",
-                "padding": [9, 0, 9, 0]
+                "padding": [12, 1, 12, 1]
             },
             "map": {
                 "background": [
@@ -275,24 +272,22 @@
                 "highlightthickness": 0,
                 "rowheight": 25
             },
-            "layout": [["treeview.treearea", {"sticky": "nsew"}]]
-        },
-        "Treeview.Heading": {
-            "configure": {
-                "foreground": "foreground-primary",
-                "background": "background-primary",
-                "padding": [0, 4, 0, 4]
-            }
-        },
-        "Selectable.Treeview": {
+            "layout": [["treeview.treearea", {"sticky": "nsew"}]],
             "map": {
                 "foreground": [["selected", "white"]],
                 "background": [["selected", "foreground-positive"]]
             }
         },
+        "Treeview.Heading": {
+            "configure": {
+                "foreground": "foreground-primary",
+                "background": "background-primary",
+                "padding": [0, 3, 0, 3]
+            }
+        },
         "TSeparator": {
             "configure": {
-                "background": "background-accent_3"
+                "background": "foreground-disabled"
             }
         }
     }

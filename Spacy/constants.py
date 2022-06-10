@@ -13,3 +13,4 @@ EVEN = 'even'
 APP_NAME = 'Spacy-Research-Project'
 FILENAME_PREFIX_FORMAT = '%Y-%m-%d %H-%M-%S'
 MAX_LOGFILE_AGE_DAYS = 7
+WIKI = 'https://en.wikipedia.org/wiki/'

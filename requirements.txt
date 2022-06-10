@@ -2,3 +2,5 @@ appdirs==1.4.4
 bs4==0.0.1
 Pillow==9.1.1
 spacy==3.3.0
+https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.3.0/en_core_web_sm-3.3.0-py3-none-any.whl
+https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.3.0/en_core_web_trf-3.3.0-py3-none-any.whl

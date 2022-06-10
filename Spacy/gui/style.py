@@ -17,12 +17,14 @@ class Style(ttk.Style):
     
     def __init__(self, root):
         super().__init__(root)
+        log.info('Preparing style manager')
         self.colour_mode = root.notebook.settings_tab.colour_mode.get()
         self.colours = self._load_colour_file('colours.json')
         self.theme = self._load_theme_file('theme.json')
         self._prep_theme()
         self.theme_create(**self.theme)
         self.theme_use('theme')  # name of theme in theme.json
+        log.info('Successfully setup style manager')
 
     def _convert_colour(self, value:str):
         try:
@@ -44,9 +46,18 @@ class Style(ttk.Style):
 
     def _prep_tk_widget(self, widget):
         colours = self.colours[self.colour_mode]
+        fg = colours['foreground']
+        bg = colours['background']
+        # This code is bad. TODO: Rewrite
         if isinstance(widget, tk.Canvas):
             widget.configure(
-                background=colours['background']['primary']
+                background=bg['primary']
+            )
+        if isinstance(widget, tk.Text):
+            widget.configure(
+                foreground=fg['primary'], background=bg['primary'],
+                font=('Segoe UI', 9), relief='flat', padx=10, pady=5,
+                insertbackground=fg['primary'], insertwidth=1
             )
 
     def _prep_theme(self):
@@ -70,6 +81,7 @@ class Style(ttk.Style):
             self._prep_tk_widget(widget)
 
     def _load_colour_file(self, colours_filename:str):
+        log.debug('Loading colour file')
         with open(
             f'{THEME_PATH}/{colours_filename}', 'r'
         ) as colour_file:

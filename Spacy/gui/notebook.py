@@ -8,6 +8,7 @@ from .widgets import (
     ScrollableFrame
 )
 from utils import parity
+from constants import WIKI
 
 
 log = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ log = logging.getLogger(__name__)
 class Notebook(ttk.Notebook):
     """Tkinter frame that ouputs results from spacy"""
     def __init__(self, master:tk.Tk):
-        log.debug('Initializing notebook')
+        log.debug('Preparing notebook')
         super().__init__(master)
         # Create notebook tabs
         self.legend_tab = LegendTab(self)
@@ -30,12 +31,14 @@ class Notebook(ttk.Notebook):
         self.add(self.contents_tab, text='Content')
         self.add(self.legend_tab, text='Legend')
         self.add(self.settings_tab, text='Settings')
-        self.add(self.test_tab, text='Testing')
+        # self.add(self.test_tab, text='Testing')
         # self.add(self.help_tab, text='Help')
+        log.info('Successfully setup notebook')
 
 
 class NotebookTab(ttk.Frame):
     def __init__(self, notebook, title:str, desc:str='', *args, **kw):
+        log.info('Preparing notebook tab')
         super().__init__(notebook, *args, **kw)
         self.head_title = tk.StringVar(value=title)
         self.head_desc = tk.StringVar(value=desc)
@@ -49,6 +52,7 @@ class NotebookTab(ttk.Frame):
             self.head, style='Head.TLabel',
             textvariable=self.head_desc
         ).pack(side='left', padx=(0, 5), pady=5)
+        log.info(f'Successfully setup notebook tab: {title}')
 
 
 class ResultsTab(NotebookTab):
@@ -59,7 +63,7 @@ class ResultsTab(NotebookTab):
         self.root = master.master
         colour = master.settings_tab.colour_mode.get()
         # Values for ImageButtons
-        img_size=(18, 16)
+        img_size=(16, 16)
         compound = 'right'
         style='Compound.TButton'
         # Create export button
@@ -77,16 +81,29 @@ class ResultsTab(NotebookTab):
         ).pack(side='right', pady=5)
         # Create treeview widget
         self.tree = CustomTreeView(
-            self, style='Selectable.Treeview', anchor='w',
+            self, style='Treeview', anchor='w',
             headings=('words', 'entity type', 'part of speech')
         )
         self.tree.pack(
-            side='bottom', fill='both', expand=True, before=self.head
+            side='left', fill='both', expand=True
         )
         # TODO: could edit this to use a save from the config file
         self.tree.set_filter(
             hidden_ents=[], hidden_pos=[], update=False
         )
+        self.tree.bind(
+            '<Double-Button-1>', self._on_tree_select, add=True
+        )
+
+    def _on_tree_select(self, event=None):
+        # Get selected item from treeview
+        focus = self.tree.focus()
+        item = self.tree.item(focus, option='values')
+        try: word = item[0]
+        except IndexError: return
+        # Set and search for that item
+        self.root.addbar.address.set(WIKI + word)
+        self.root.addbar.begin_btn.invoke()
 
     def show_filter_msgbox(self):
         # Not happy with constructing the msgbox every time,
@@ -119,19 +136,22 @@ class ContentTab(NotebookTab):
     def __init__(self, master, title='Content', desc=''):
         log.debug('Initializing content tab')
         super().__init__(master, title=title, desc=desc)
-        self.content_field = ttk.Label(self, anchor='nw')
+        self.content_field = tk.Text(self)
         self.content_field.pack(
-            fill='both', expand=True, padx=5, pady=5
+            side='left', fill='both', expand=True
         )
-        self.content_field.bind('<Configure>', self.update_label_wrap)
- 
-    def update_label_wrap(self, event=None):
-        self.content_field.config(wraplength=self.winfo_width() - 10)
+        self.scrollbar = ttk.Scrollbar(
+            self, orient='vertical',
+            style='ArrowLess.Vertical.TScrollbar',
+            command=self.content_field.yview
+        )
+        self.scrollbar.pack(side='right', fill='y')
+        self.content_field.config(yscrollcommand=self.scrollbar.set)
 
     def update_content(self, desc:str, content:str):
-        if desc:
-            self.head_desc.set(desc)
-        self.content_field.config(text=content)
+        self.head_desc.set(desc)
+        self.content_field.delete('1.0', 'end')
+        self.content_field.insert('end', content)
 
 
 class LegendTab(NotebookTab):
@@ -142,7 +162,7 @@ class LegendTab(NotebookTab):
         self.tree = CustomTreeView(
             self, headings=('entities', '', 'parts of speech', '')
         )
-        self.tree.pack(side='bottom', fill='both', expand=True, before=self.head)
+        self.tree.pack(side='left', fill='both', expand=True)
         # populate tree
         settings = master.master.cfg
         entities = settings['entities']
@@ -150,7 +170,7 @@ class LegendTab(NotebookTab):
         for i, (entity, pos) in enumerate(
             zip(entities.items(), word_classes.items())
         ):
-            tag = 'even' if i % 2 == 0 else 'odd'
+            tag = parity(i)
             values = entity + pos
             values = [
                 v.upper() if values.index(v) % 2 == 0 else v \
@@ -225,6 +245,13 @@ class SettingsTab(NotebookTab):
             var=self.colour_mode, options=('light', 'dark')
         )
         self.colour_mode_radio.pack(pack_info)
+        self.pipeline_radio = RadioSetting(
+            frame, label='NLP Pipeline',
+            desc='Preference for NLP Pipeline (restart required)',
+            options=('speed', 'accuracy'),
+            var=self.pipeline,
+        )
+        self.pipeline_radio.pack(pack_info)
 
 
 # WIP
@@ -315,7 +342,7 @@ class FilterMessageBoxTab(NotebookTab):
         super().__init__(*args, **kw)
         self.tree = CustomTreeView(
             self, headings=('include', 'exlude'), anchor='w',
-            style='Selectable.Treeview'
+            style='Treeview'
         )
         self.tree.pack(fill='both', expand=True)
         ttk.Separator(self, orient='horizontal').pack(fill='x')

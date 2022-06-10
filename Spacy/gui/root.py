@@ -81,36 +81,7 @@ class Root(tk.Tk):
 
     def start(self):
         """Start the GUI application"""
-        self.load_spacy_pipeline(name='en_core_web_trf')
         self.mainloop()
-
-    def load_spacy_pipeline(self, name):
-        """Sets new attr as pipeline"""
-        def load(retries=3):
-            if retries <= 0:
-                log.error(
-                    'Exhausted retries for loading spacy pipeline'
-                )
-                self.addbar.update_gui_state(searching=False)
-                return
-            log.debug(f'Attempting to load spacy pipeline: {name}')
-            try:
-                self.pipeline = get_pipe(name)
-            except OSError:
-                log.error(
-                    'Failed to load pipeline trying again in 3 seconds'
-                )
-                self.after(3000, lambda: load(retries-1))
-                return
-            log.info('Loaded spacy pipeline')
-            self.addbar.update_gui_state(searching=False)
-        # Disable GUI that requires pipeline to be loaded
-        self.addbar.update_gui_state(searching=True)
-        # Load pipeline on a separate thread because it can
-        # take a while.
-        thread = Thread(target=load)
-        thread.daemon = True
-        thread.start()
 
     def import_string(self) -> tuple[str, str]:
         """Import a string from a text file and return it"""
@@ -121,7 +92,7 @@ class Root(tk.Tk):
             filetypes=(('Text File', '*.txt'),)
         )
         # Return if no file is selected
-        if not file: return
+        if not file: return "No file selected" , ""
         data = file.read()
         file.close()
         log.debug('Successfully import string from text file')
@@ -181,9 +152,12 @@ class Root(tk.Tk):
             )
 
         def get_content_non_absolute():
-            with open(address, 'r') as file:
-                title = address.split('/')[-1]
-                content = file.read()
+            try:
+                with open(address, 'r') as file:
+                    title = address.split('/')[-1]
+                    content = file.read()
+            except FileNotFoundError:
+                return 'Content Not Found', ''
             title = title.split('.')[0].replace('_', ' ').title()
             return title, content
 

@@ -36,9 +36,9 @@ class CustomTreeView(ttk.Treeview):
 
     def __init__(
         self, master:tk.Widget, headings:tuple[str],
-        anchor:str='w', style:str='Treeview',
-        include_scrollbar:bool=True, **kw
+        anchor:str='w', style:str='Treeview', **kw
     ):
+        log.info('Preparing treeview widget')
         super().__init__(
             master, columns=headings, show='headings', style=style,
             **kw
@@ -48,15 +48,25 @@ class CustomTreeView(ttk.Treeview):
         # Configure treeview
         self.after(10, self._setup_tag_colours)
         self._set_headings(headings, anchor)
-        if include_scrollbar:
-            self._build_scrollbar()
+        self.scrollbar = ttk.Scrollbar(
+            self.master, orient='vertical', command=self.yview,
+            style='ArrowLess.Vertical.TScrollbar'
+        )
+        self.scrollbar.pack(side='right', fill='y')
+        self.configure(yscrollcommand=self.scrollbar.set)
+        self.bind('<Motion>', self._set_hover_effect, add=True)
+        log.info('Successfully setup treeview')
+
+    def _set_hover_effect(self, event):
+        item = self.identify_row(event.y)
+        self.tk.call(self, 'tag', 'remove', 'highlight')
+        self.tk.call(self, 'tag', 'add', 'highlight', item)
 
     def _setup_tag_colours(self):
-        return  # disabled
-        colour_mode = self.root.notebook.settings_tab.colour_mode.get()
-        colours = self.root.style.colours[colour_mode]['background']
-        self.tag_configure(ODD, background=colours['tertiary'])
-        self.tag_configure(EVEN, background=colours['accent_1'])
+        bg = self.root.style.colours[
+            self.root.notebook.settings_tab.colour_mode.get()
+        ]['background']
+        self.tag_configure('highlight', background=bg['secondary'])
 
     def _build_scrollbar(self):
         """Build scrollbar for treeview"""
@@ -67,7 +77,7 @@ class CustomTreeView(ttk.Treeview):
         self.configure(yscrollcommand=self.scrollbar.set)
         # Pack the scrollbar after displaying the treeview
         def pack():
-            self.scrollbar.pack(side='right', fill='y', before=self)
+            self.scrollbar.pack(side='right', fill='y')
             self.unbind('<Map>')
         self.bind('<Map>', lambda e: pack())
 
@@ -98,6 +108,7 @@ class CustomTreeView(ttk.Treeview):
         for i, row in enumerate(self.filtered_data):
             tag = parity(i)
             self.insert('', 'end', values=row, tags=(tag,))
+            self.tag_bind(i, '<Motion>', self._set_hover_effect)
         log.debug(f'Completed update for {self}, item count: {i}')
 
     def filter(self, data:list[list, list]) -> list[str]:
@@ -238,19 +249,21 @@ class ScrollableFrame(ttk.Frame):
         self.canvas.bind_all(
             '<MouseWheel>', self._on_mousewheel
         )
-        self.frame.bind(
-            '<Configure>',
-            lambda e: self.canvas.config(
-                scrollregion=self.canvas.bbox("all")
-            )
-        )
+        self.frame.bind('<Configure>', self._on_frame_configure)
         self.frame.bind('<Enter>', self._bind_mousewheel)
         self.frame.bind('<Leave>', self._unbind_mousewheel)
+
+    def _on_frame_configure(self, event):
+        self.canvas.config(scrollregion=self.canvas.bbox("all"))
+        if self.frame.winfo_height() <= self.canvas.winfo_height():
+            self._unbind_mousewheel()
+            return
+        self._bind_mousewheel()
     
-    def _bind_mousewheel(self, event):
+    def _bind_mousewheel(self, event=None):
         self.canvas.bind_all('<MouseWheel>', self._on_mousewheel)
 
-    def _unbind_mousewheel(self, event):
+    def _unbind_mousewheel(self, event=None):
         self.canvas.unbind_all('<MouseWheel>')
 
     def _on_mousewheel(self, event):

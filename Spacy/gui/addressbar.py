@@ -38,7 +38,7 @@ class AddressBar(ttk.Frame):
         )
         # Values for image buttons
         colour = self.settings.colour_mode.get()
-        img_size = (18, 16)
+        img_size = (16, 16)
         compound = 'right'
         style='AddressBarImg.TButton'
         # Begin parsing process button
@@ -65,15 +65,17 @@ class AddressBar(ttk.Frame):
 
     def update_gui_state(self, searching:bool):
         """Enables or disables addressbar widgets"""
-        log.debug(f'Updating address bar GUI. Disabled = {searching}')
+        log.debug(f'Address bar disabled = {searching}')
         state = 'disabled' if searching else 'normal'
         self.begin_btn.config(state=state)
         self.import_btn.config(state=state)
         if searching:
+            self.master.notebook.results_tab.tree.state(('disabled',))
             self.progress_bar.pack(self.input_field.pack_info())
             self.progress_bar.start(10)
             self.input_field.pack_forget()
             return
+        self.master.notebook.results_tab.tree.state(('!disabled',))
         self.input_field.pack(self.progress_bar.pack_info())
         self.progress_bar.pack_forget()
         self.progress_bar.stop()
